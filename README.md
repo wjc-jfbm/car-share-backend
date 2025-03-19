@@ -16,4 +16,3 @@ the "Deliver" stage of your Pipeline.
 
 Add a new line to test jenkins CI job.
 
-Test Jenkins Job.
