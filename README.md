@@ -1,21 +1,67 @@
- simple-java-maven-app
+# 🚗 拼车协作平台
 
-This repository is for the
-[Build a Java app with Maven](https://jenkins.io/doc/tutorials/build-a-java-app-with-maven/)
-tutorial in the [Jenkins User Documentation](https://jenkins.io/doc/).
+面向粉丝团购场景的拼车协作与可信结算系统。
 
-The repository contains a simple Java application which outputs the string
-"Hello world!" and is accompanied by a couple of unit tests to check that the
-main application works as expected. The results of these tests are saved to a
-JUnit XML report.
+## 技术栈
 
-The `jenkins` directory contains an example of the `Jenkinsfile` (i.e. Pipeline)
-you'll be creating yourself during the tutorial and the `scripts` subdirectory
-contains a shell script with commands that are executed when Jenkins processes
-the "Deliver" stage of your Pipeline.
+| 层级 | 技术 |
+|------|------|
+| 后端框架 | Spring Boot 3.2、MyBatis-Plus 3.5.5、RuoYi |
+| 数据库 | MySQL、Redis、Druid |
+| 前端 | 微信小程序（原生）|
+| 管理后台 | Vue 3 + Element Plus |
+| 认证 | JWT |
+| AI | 多维度加权推荐引擎 |
 
-Add a new line to test jenkins CI job.
+## 核心功能
 
-Hello World ~~~~ 20260331
+- 发起/参与拼车、偏好认领、费用分摊
+- AI 智能推荐（5 维匹配算法）
+- 付款凭证上传与审核
+- 结算确认与订单生成
+- 物流追踪与签收确认
+- 双向评价与信用评分体系
+- 消息通知与数据统计
+- 拼车模板快速创建
 
-Software Testing 0401
+## 快速开始
+
+### 1. 数据库
+
+```sql
+SOURCE init_complete.sql;
+```
+
+### 2. 配置
+
+```bash
+cp src/main/resources/application-sample.yml src/main/resources/application.yml
+# 修改 application.yml 中的数据库连接和 Redis 配置
+```
+
+### 3. 启动后端
+
+```bash
+cd car-share-backend
+mvn spring-boot:run
+```
+
+### 4. 微信小程序
+
+用微信开发者工具打开 `wechatproject` 目录，将 `utils/request.js` 中的 `baseUrl` 改为你的后端地址。
+
+## 项目结构
+
+```
+car-share-backend/    # Java 后端 + RuoYi 管理后台
+  ├── src/main/java/com/carshare/
+  │   ├── controller/    # API 控制器
+  │   ├── service/       # 业务逻辑层
+  │   ├── mapper/        # 数据访问层
+  │   └── entity/        # 实体类
+  └── admin-ui/          # 管理后台前端
+
+wechatproject/          # 微信小程序
+  ├── pages/            # 页面
+  └── utils/            # 工具类
+```
