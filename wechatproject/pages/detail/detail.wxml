@@ -1,0 +1,313 @@
+<view class="container">
+  <view class="car-info">
+    <view class="car-title-row">
+      <text class="car-title">{{car.title}}</text>
+      <view class="title-right">
+        <view class="fav-btn {{isFavorited ? 'active' : ''}}" bindtap="onToggleFavorite">
+          <text>{{isFavorited ? '❤️' : '🤍'}}</text>
+        </view>
+        <text class="tag {{car.status == 0 ? 'tag-pink' : car.status == 1 ? 'tag-yellow' : car.status == 2 ? 'tag-blue' : car.status == 3 ? 'tag-orange' : car.status == 4 ? 'tag-green' : 'tag-gray'}}">{{car.status == 0 ? '招募中' : car.status == 1 ? '进行中' : car.status == 2 ? '已结算' : car.status == 3 ? '配送中' : car.status == 4 ? '已完成' : '已取消'}}</text>
+      </view>
+    </view>
+    <view class="car-meta">
+      <view class="meta-item">
+        <text class="meta-label">人均</text>
+        <text class="meta-value price">¥{{car.pricePer || car.price_per}}</text>
+      </view>
+      <view class="meta-item">
+        <text class="meta-label">人数</text>
+        <text class="meta-value">{{car.currentCount || car.current_count}}/{{car.totalCount || car.total_count}}</text>
+      </view>
+      <view class="meta-item">
+        <text class="meta-label">成团率</text>
+        <text class="meta-value {{car.successRate >= 70 || car.success_rate >= 70 ? 'green' : car.successRate >= 40 || car.success_rate >= 40 ? 'orange' : 'red'}}">{{car.successRate || car.success_rate}}%</text>
+      </view>
+    </view>
+    <view class="car-progress">
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(car.totalCount || car.total_count) ? ((car.currentCount || car.current_count) / (car.totalCount || car.total_count) * 100) : 0}}%"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">车主信息</view>
+    <view class="owner-info">
+      <view class="owner-avatar">
+        <text class="avatar-text">{{car.avatarLetter || '?'}}</text>
+      </view>
+      <view class="owner-detail">
+        <text class="owner-name">{{car.userNickname || car.user_nickname || '未知'}}</text>
+        <view class="owner-credit">
+          <text class="credit-label">信用分</text>
+          <text class="credit-value">{{car.userCredit || car.user_credit || 60}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">商品信息</view>
+    <view class="goods-info">
+      <image class="goods-image" wx:if="{{car.goodsImageLocal || car.goodsImageFull || car.goodsImage || car.goods_image}}" src="{{car.goodsImageLocal || car.goodsImageFull || car.goodsImage || car.goods_image}}" mode="aspectFill"></image>
+      <text class="goods-name">{{car.goodsName || car.goods_name}}</text>
+      <text class="goods-desc" wx:if="{{car.description}}">{{car.description}}</text>
+    </view>
+    <view class="info-row" wx:if="{{car.goods && car.goods.versions}}">
+      <text class="label">包含版本</text>
+      <view class="tag-list">
+        <text class="info-tag" wx:for="{{car.goods.versionList}}" wx:key="index">{{item}}</text>
+      </view>
+    </view>
+    <view class="info-row" wx:if="{{car.goods && car.goods.cards}}">
+      <text class="label">包含小卡</text>
+      <view class="tag-list">
+        <text class="info-tag" wx:for="{{car.goods.cardList}}" wx:key="index">{{item}}</text>
+      </view>
+    </view>
+    <view class="info-row" wx:if="{{car.distributionType !== undefined && car.distributionType !== null}}">
+      <text class="label">分配方式</text>
+      <text class="value">{{car.distributionType === 0 ? '随机分配' : car.distributionType === 1 ? '偏好优先' : '抽签'}}</text>
+    </view>
+    <view class="info-row" wx:if="{{car.deadline}}">
+      <text class="label">截止时间</text>
+      <text class="value">{{car.deadline}}</text>
+    </view>
+    <view class="info-row">
+      <text class="label">总价</text>
+      <text class="value price-total">¥{{car.priceTotal || car.price_total}}</text>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{hasJoined && !hasPaid && !hasEvidence}}">
+    <view class="section-title">付款信息</view>
+    <view class="pay-card">
+      <view class="pay-amount-row">
+        <text class="pay-label">待付金额</text>
+        <text class="pay-amount">¥{{car.pricePer || car.price_per}}</text>
+      </view>
+      <view class="pay-hint">
+        <text>请向车主转账后上传付款凭证，车主确认后即完成付款</text>
+      </view>
+      <button class="btn-pay" bindtap="onPay">立即付款</button>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{hasJoined && !hasPaid && hasEvidence}}">
+    <view class="section-title">付款状态</view>
+    <view class="pay-card">
+      <view class="pay-amount-row">
+        <text class="pay-label">待付金额</text>
+        <text class="pay-amount">¥{{car.pricePer || car.price_per}}</text>
+      </view>
+      <view class="pay-hint" wx:if="{{evidenceStatus === 0}}">
+        <text style="color: #FF9800;">凭证审核中，请等待车主确认</text>
+      </view>
+      <view class="pay-hint" wx:if="{{evidenceStatus === 2}}">
+        <text style="color: #F44336;">凭证已被驳回，请重新上传</text>
+      </view>
+      <button class="btn-pay" bindtap="onUploadEvidence" wx:if="{{evidenceStatus === 2}}">重新上传凭证</button>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{hasJoined && hasPaid}}">
+    <view class="section-title">付款状态</view>
+    <view class="pay-done">
+      <icon type="success" size="20" color="#4CAF50"></icon>
+      <text class="pay-done-text">已付款 ¥{{car.pricePer || car.price_per}}</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">已参与成员 ({{memberCount}})</view>
+    <view class="member-list" wx:if="{{car.members && car.members.length > 0}}">
+      <view class="member-item" wx:for="{{car.members}}" wx:key="id">
+        <view class="member-left">
+          <view class="member-avatar">
+            <text>{{item.avatarLetter || '?'}}</text>
+          </view>
+          <view class="member-info">
+            <text class="member-name">{{item.nickname || item.user_nickname || '用户'}}</text>
+            <view class="member-claim-info" wx:if="{{item.claimedVersion || item.claimed_version || item.claimedCard || item.claimed_card}}">
+              <text class="claim-tag" wx:if="{{item.claimedVersion || item.claimed_version}}">版本: {{item.claimedVersion || item.claimed_version}}</text>
+              <text class="claim-tag" wx:if="{{item.claimedCard || item.claimed_card}}">小卡: {{item.claimedCard || item.claimed_card}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="member-right">
+          <text class="tag {{(item.payStatus === 1 || item.pay_status === 1 || item.pay_status === 2) ? 'tag-green' : 'tag-orange'}}">{{(item.payStatus === 1 || item.pay_status === 1 || item.pay_status === 2) ? '已付款' : '待付款'}}</text>
+          <text class="tag tag-pink" wx:if="{{item.isOwner === 1 || item.is_owner === 1}}">车主</text>
+          <text class="evidence-status-tag" wx:if="{{item.evidence_url}}" style="color: {{evidenceStatusMap[item.evidence_status].color}};">{{evidenceStatusMap[item.evidence_status].text}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="empty-hint" wx:else>
+      <text>暂无成员参与</text>
+    </view>
+  </view>
+
+  <view class="section ship-entry-card" wx:if="{{isOwner && (car.status == 2 || car.status == '2')}}">
+    <view class="ship-entry-top">
+      <image class="ship-entry-icon-img" src="/images/truck.png" mode="aspectFit" />
+      <view class="ship-entry-info">
+        <text class="ship-entry-title">结算已完成，等待发货</text>
+        <text class="ship-entry-desc">请尽快填写快递信息完成发货</text>
+      </view>
+    </view>
+    <button class="btn-go-ship" bindtap="goToLogistics">去发货</button>
+  </view>
+
+  <view class="section ship-entry-card ship-entry-delivering" wx:if="{{isOwner && (car.status == 3 || car.status == '3')}}">
+    <view class="ship-entry-top">
+      <image class="ship-entry-icon-img delivering" src="/images/truck.png" mode="aspectFit" />
+      <view class="ship-entry-info">
+        <text class="ship-entry-title">配送中</text>
+        <text class="ship-entry-desc">商品正在配送中，可查看物流或更新状态</text>
+      </view>
+    </view>
+    <button class="btn-go-ship btn-go-track" bindtap="goToLogistics">查看物流</button>
+  </view>
+
+  <view class="action-bar" wx:if="{{car.status == 0}}">
+    <button class="btn-primary" bindtap="onJoin" wx:if="{{!hasJoined}}">参与拼车</button>
+    <button class="btn-pay-action" bindtap="onPay" wx:if="{{hasJoined && !hasPaid && !hasEvidence && !isOwner}}">付款 ¥{{car.pricePer || car.price_per}}</button>
+    <button class="btn-secondary" bindtap="onUploadEvidence" wx:if="{{hasJoined && !hasPaid && !hasEvidence && !isOwner}}">上传凭证</button>
+    <button class="btn-secondary" bindtap="onClaimPreference" wx:if="{{hasJoined && !hasClaimed}}">认领偏好</button>
+    <button class="btn-secondary" bindtap="goToSettle" wx:if="{{isOwner}}">结算中心</button>
+    <button class="btn-danger" bindtap="onCloseCar" wx:if="{{isOwner}}">截止报名</button>
+    <button class="btn-primary" open-type="share">分享拼车</button>
+  </view>
+
+  <view class="action-bar" wx:if="{{car.status == 1}}">
+    <button class="btn-pay-action" bindtap="onPay" wx:if="{{hasJoined && !hasPaid && !hasEvidence && !isOwner}}">付款 ¥{{car.pricePer || car.price_per}}</button>
+    <button class="btn-secondary" bindtap="onUploadEvidence" wx:if="{{hasJoined && !hasPaid && !hasEvidence && !isOwner}}">上传凭证</button>
+    <button class="btn-secondary" bindtap="onClaimPreference" wx:if="{{hasJoined && !hasClaimed}}">认领偏好</button>
+    <button class="btn-secondary" bindtap="goToSettle" wx:if="{{isOwner || hasPaid}}">结算中心</button>
+    <button class="btn-primary" open-type="share">分享拼车</button>
+  </view>
+
+  <view class="action-bar" wx:if="{{car.status == 2}}">
+    <button class="btn-primary" bindtap="goToLogistics" wx:if="{{isOwner}}">去发货</button>
+    <button class="btn-secondary" bindtap="goToSettle">结算详情</button>
+    <button class="btn-secondary" bindtap="goToLogistics" wx:if="{{!isOwner}}">物流追踪</button>
+  </view>
+
+  <view class="action-bar" wx:if="{{car.status == 3}}">
+    <button class="btn-secondary" bindtap="goToLogistics">物流追踪</button>
+    <button class="btn-secondary" bindtap="goToSettle">结算详情</button>
+  </view>
+
+  <view class="action-bar" wx:if="{{car.status == 4}}">
+    <button class="btn-secondary" bindtap="goToLogistics">物流详情</button>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showClaimModal}}" bindtap="onClaimCancel"></view>
+  <view class="modal-content" wx:if="{{showClaimModal}}">
+    <view class="modal-header">
+      <text class="modal-title">认领偏好</text>
+      <text class="modal-close" bindtap="onClaimCancel">&#x2715;</text>
+    </view>
+    <view class="modal-body">
+      <view class="claim-section" wx:if="{{versionList.length > 0}}">
+        <text class="claim-label">选择版本偏好</text>
+        <view class="claim-options">
+          <view class="claim-option {{item._sel ? 'selected' : ''}}" wx:for="{{versionList}}" wx:key="index" bindtap="onVersionSelect" data-index="{{index}}">
+            <text>{{item.v}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="claim-section" wx:if="{{cardList.length > 0}}">
+        <text class="claim-label">选择小卡偏好</text>
+        <view class="claim-options">
+          <view class="claim-option {{item._sel ? 'selected' : ''}}" wx:for="{{cardList}}" wx:key="index" bindtap="onCardSelect" data-index="{{index}}">
+            <text>{{item.c}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn-primary" bindtap="onClaimSubmit">确认认领</button>
+    </view>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showJoinModal}}" bindtap="onJoinCancel"></view>
+  <view class="modal-content" wx:if="{{showJoinModal}}">
+    <view class="modal-header">
+      <text class="modal-title">参与拼车</text>
+      <text class="modal-close" bindtap="onJoinCancel">&#x2715;</text>
+    </view>
+    <scroll-view class="modal-body" scroll-y>
+      <view class="claim-section" wx:if="{{joinVersions.length > 0}}">
+        <text class="claim-label">选择版本偏好</text>
+        <view class="claim-options">
+          <view class="claim-option {{item._jsel ? 'selected' : ''}}" wx:for="{{joinVersions}}" wx:key="index" bindtap="onJoinVersionSelect" data-index="{{index}}">
+            <text>{{item.v}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="claim-section" wx:if="{{joinCards.length > 0}}">
+        <text class="claim-label">选择小卡偏好</text>
+        <view class="claim-options">
+          <view class="claim-option {{item._jsel ? 'selected' : ''}}" wx:for="{{joinCards}}" wx:key="index" bindtap="onJoinCardSelect" data-index="{{index}}">
+            <text>{{item.c}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="claim-section">
+        <text class="claim-label">收货信息</text>
+        <view class="join-input-group">
+          <input class="join-input" placeholder="联系电话" type="number" maxlength="11" value="{{joinPhone}}" bindinput="onJoinPhoneInput" />
+          <textarea class="join-textarea" placeholder="收货地址（详细地址）" value="{{joinAddress}}" bindinput="onJoinAddressInput" maxlength="200" />
+        </view>
+      </view>
+    </scroll-view>
+    <view class="modal-footer">
+      <button class="btn-cancel" bindtap="onJoinCancel">取消</button>
+      <button class="btn-primary" bindtap="onJoinSubmit">确认参与</button>
+    </view>
+  </view>
+
+  <!-- 评价区域 -->
+  <view class="section review-section" wx:if="{{car.id}}">
+    <view class="section-title-wrap">
+      <text class="section-title">🌟 交易评价</text>
+      <text class="section-more" bindtap="onShowReviewModal" wx:if="{{isOwner || hasJoined}}">写评价</text>
+    </view>
+    <view class="review-list" wx:if="{{reviews.length > 0}}">
+      <view class="review-item" wx:for="{{reviews}}" wx:key="id" wx:for-index="idx">
+        <view class="review-header">
+          <text class="review-rating">{{item.stars || '★★★★★'}}</text>
+          <text class="review-time">{{item.dateLabel || ''}}</text>
+        </view>
+        <text class="review-content" wx:if="{{item.content}}">{{item.content}}</text>
+      </view>
+    </view>
+    <view class="review-empty" wx:if="{{reviews.length === 0}}">
+      <text class="review-empty-text">暂无评价，快来发表第一条评价吧</text>
+    </view>
+  </view>
+
+  <!-- 评价弹窗 -->
+  <view class="modal" wx:if="{{showReviewModal}}">
+    <view class="modal-mask" bindtap="onCloseReviewModal"></view>
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">写评价</text>
+        <text class="modal-close" bindtap="onCloseReviewModal">✕</text>
+      </view>
+      <view class="modal-body">
+        <view class="review-stars">
+          <text class="star" wx:for="{{[1,2,3,4,5]}}" wx:key="index"
+                bindtap="onReviewRatingTap" data-rating="{{item}}">
+            {{item <= reviewRating ? '⭐' : '☆'}}
+          </text>
+        </view>
+        <textarea class="review-textarea" placeholder="分享你的拼车体验..." value="{{reviewContent}}" bindinput="onReviewContentInput" maxlength="200" />
+      </view>
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="onCloseReviewModal">取消</button>
+        <button class="btn-primary" bindtap="onSubmitReview">提交评价</button>
+      </view>
+    </view>
+  </view>
+</view>

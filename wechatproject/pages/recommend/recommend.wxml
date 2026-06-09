@@ -1,0 +1,136 @@
+<view class="page">
+  <!-- 推荐头部 -->
+  <view class="hero-section">
+    <view class="hero-icon">🎯</view>
+    <text class="hero-title">AI 智能推荐</text>
+    <text class="hero-desc">基于多维度评分算法，为你精选最匹配的拼车</text>
+    <view class="ai-badge-row">
+      <view class="ai-badge">🧠 偏好匹配</view>
+      <view class="ai-badge">💰 价格分析</view>
+      <view class="ai-badge">⭐ 信用评估</view>
+      <view class="ai-badge">🔥 热度评分</view>
+    </view>
+  </view>
+
+  <!-- 加载中骨架 -->
+  <view class="skeleton-list" wx:if="{{loading && list.length === 0}}">
+    <view class="skeleton-card" wx:for="{{3}}" wx:key="index">
+      <view class="skeleton skeleton-header">
+        <view class="skeleton skeleton-avatar"></view>
+        <view class="skeleton skeleton-name"></view>
+        <view class="skeleton skeleton-badge"></view>
+      </view>
+      <view class="skeleton skeleton-title"></view>
+      <view class="skeleton skeleton-progress"></view>
+      <view class="skeleton skeleton-footer">
+        <view class="skeleton skeleton-price"></view>
+        <view class="skeleton skeleton-btn"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 推荐列表 -->
+  <view class="recommend-list" wx:if="{{list.length > 0}}">
+    <view class="list-header">
+      <text class="list-count">共找到 <text class="highlight">{{total}}</text> 个匹配拼车</text>
+      <view class="match-legend">
+        <view class="legend-dot high"></view>
+        <text class="legend-text">高匹配</text>
+        <view class="legend-dot mid"></view>
+        <text class="legend-text">中匹配</text>
+        <view class="legend-dot low"></view>
+        <text class="legend-text">低匹配</text>
+      </view>
+    </view>
+
+    <view
+      class="recommend-card"
+      wx:for="{{list}}"
+      wx:for-index="idx"
+      wx:key="idx"
+      bindtap="goToDetail"
+      data-id="{{item.car.id}}"
+      hover-class="card-hover"
+    >
+      <!-- AI 匹配度指示器 -->
+      <view class="match-indicator">
+        <view class="match-ring" style="background: conic-gradient({{item._matchColor}} 0deg, {{item._matchColor}} {{item._matchAngle}}deg, #F3F0FF {{item._matchAngle}}deg 360deg);">
+          <text class="match-score" style="color: {{item._matchColor}}">{{item.matchScore * 100 || 0}}%</text>
+        </view>
+        <text class="match-label" style="color: {{item._matchColor}}">{{item._matchLabel}}</text>
+      </view>
+
+      <view class="card-main">
+        <view class="card-top">
+          <view class="card-user">
+            <view class="user-avatar" style="background: {{avatarColors[item.car.userId % 6]}}">
+              <text>{{item.car.userNickname ? item.car.userNickname[0] : '?'}}</text>
+            </view>
+            <view class="user-info">
+              <text class="user-name">{{item.car.userNickname || '匿名用户'}}</text>
+              <text class="match-tag" wx:if="{{item.matchScore >= 0.6}}">🔥 高匹配</text>
+              <text class="match-tag mid" wx:if="{{item.matchScore >= 0.3 && item.matchScore < 0.6}}">📌 适合你</text>
+            </view>
+          </view>
+          <view class="status-badge status-{{item.car.status}}">
+            <text>{{item.car.status === 0 ? '招募中' : item.car.status === 1 ? '已截止' : '已完成'}}</text>
+          </view>
+        </view>
+
+        <text class="card-title">{{item.car.title || '未命名拼车'}}</text>
+
+        <view class="card-tags" wx:if="{{item.car.goodsName}}">
+          <text class="tag tag-goods">{{item.car.goodsName}}</text>
+          <text class="tag tag-dist" wx:if="{{item.car.distributionType === 1}}">偏好优先</text>
+        </view>
+
+        <view class="card-progress">
+          <view class="progress-header">
+            <text class="progress-label">组队进度</text>
+            <text class="progress-num">{{item.car.currentCount || 0}}/{{item.car.totalCount || 0}}人</text>
+          </view>
+          <view class="progress-track">
+            <view class="progress-fill" style="width: {{item.car.totalCount ? (item.car.currentCount / item.car.totalCount * 100) : 0}}%"></view>
+          </view>
+        </view>
+
+        <view class="card-footer">
+          <view class="card-price">
+            <text class="price-symbol">¥</text>
+            <text class="price-amount">{{item.car.pricePer || 0}}</text>
+            <text class="price-unit">/人</text>
+          </view>
+          <view class="card-action">
+            <text>去看看</text>
+            <text class="action-arrow">→</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && list.length === 0}}">
+    <view class="empty-icon-wrap">
+      <text class="empty-icon">🔍</text>
+    </view>
+    <text class="empty-text">暂无推荐</text>
+    <text class="empty-hint">完善你的偏好设置，获得更精准的推荐</text>
+    <view class="empty-btn" bindtap="goToProfile">去设置偏好</view>
+  </view>
+
+  <!-- 加载更多 -->
+  <view class="load-more" wx:if="{{loading && list.length > 0}}">
+    <view class="loading-dots">
+      <view class="dot dot-1"></view>
+      <view class="dot dot-2"></view>
+      <view class="dot dot-3"></view>
+    </view>
+  </view>
+
+  <view class="no-more" wx:if="{{!hasMore && list.length > 0}}">
+    <view class="no-more-line"></view>
+    <text class="no-more-text">已展示所有推荐</text>
+    <view class="no-more-line"></view>
+  </view>
+</view>

@@ -1,0 +1,39 @@
+@startuml
+skinparam linetype solid
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    ArrowColor #000000
+    FontSize 14
+    AttributeFontSize 12
+    StereotypeFontSize 12
+}
+
+class "拼车" as car <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    goods_id : bigint <<FK>>
+    goods_name : varchar(100)
+    goods_image : varchar(255)
+    price_per : decimal(10,2)
+    total_count : int
+    status : int
+}
+
+class "商品" as goods <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    name : varchar(100)
+    type : varchar(50)
+    versions : varchar(255)
+    cards : varchar(255)
+    market_price : decimal(10,2)
+    image_url : varchar(255)
+}
+
+car "N" -- "1" goods : 关联 >
+
+@enduml

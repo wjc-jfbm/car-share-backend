@@ -1,0 +1,128 @@
+<view class="container">
+  <!-- 模板选择入口 -->
+  <view class="template-bar" wx:if="{{templateList.length > 0}}" bindtap="onToggleTemplates">
+    <text class="template-bar-icon">📋</text>
+    <text class="template-bar-text">从模板快速创建</text>
+    <text class="template-bar-arrow">{{showTemplates ? '▼' : '▶'}}</text>
+  </view>
+
+  <!-- 模板列表 -->
+  <view class="template-list" wx:if="{{showTemplates && templateList.length > 0}}">
+    <view class="template-item" wx:for="{{templateList}}" wx:key="id" bindtap="onSelectTemplate" data-template="{{item}}">
+      <view class="template-item-left">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-desc">{{item.goodsName}} · {{item.totalCount}}人 · ¥{{item.pricePer}}/人</text>
+      </view>
+      <text class="template-use">使用</text>
+    </view>
+  </view>
+
+  <form bindsubmit="onSubmit">
+    <view class="form-section">
+      <view class="section-title">基本信息</view>
+      <view class="form-item">
+        <text class="label">拼车标题</text>
+        <input class="input" name="title" placeholder="如：SEVENTEEN新专辑拼车" value="{{formData.title}}" />
+      </view>
+      <view class="form-item">
+        <text class="label">商品名称</text>
+        <input class="input" name="goodsName" placeholder="如：SEVENTEEN 9th Mini Album" value="{{formData.goodsName}}" />
+      </view>
+      <view class="form-item">
+        <text class="label">商品图片</text>
+        <view class="image-upload-row">
+          <view class="image-preview" wx:if="{{formData.goodsImage}}">
+            <image class="preview-img" src="{{formData.goodsImageFull || formData.goodsImage}}" mode="aspectFill"></image>
+            <view class="image-remove" catchtap="onRemoveGoodsImage">✕</view>
+          </view>
+          <view class="image-add" bindtap="onChooseGoodsImage" wx:if="{{!formData.goodsImage}}">
+            <image class="add-icon-img" src="/images/publish.png" mode="aspectFit" />
+            <text class="add-text">上传图片</text>
+          </view>
+        </view>
+      </view>
+      <view class="form-item">
+        <text class="label">拼车说明</text>
+        <textarea class="textarea" name="description" placeholder="描述拼车详情，如包含哪些版本、小卡等" value="{{formData.description}}" />
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="section-title">商品属性</view>
+      <view class="form-item">
+        <text class="label">包含版本</text>
+        <input class="input" name="versions" placeholder="用逗号分隔，如：A版,B版,C版,D版" value="{{formData.versions}}" />
+      </view>
+      <view class="form-item">
+        <text class="label">包含小卡</text>
+        <input class="input" name="cards" placeholder="用逗号分隔，如：权顺荣卡,李硕珉卡,全圆佑卡" value="{{formData.cards}}" />
+      </view>
+      <view class="form-tip">
+        <text>填写版本和小卡信息后，成员可按偏好认领，系统将智能分配</text>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="section-title">价格设置</view>
+      <view class="form-item">
+        <text class="label">总价（元）</text>
+        <input class="input" type="digit" name="priceTotal" placeholder="请输入商品总价" value="{{formData.priceTotal}}" bindinput="onPriceInput" />
+      </view>
+      <view class="form-item">
+        <text class="label">总人数</text>
+        <input class="input" type="number" name="totalCount" placeholder="拼车总人数（至少2人）" value="{{formData.totalCount}}" bindinput="onCountInput" />
+      </view>
+      <view class="form-item">
+        <text class="label">人均价格</text>
+        <view class="calculated-price">
+          <text class="price-value">¥{{calculatedPrice}}</text>
+          <text class="hint">（自动计算）</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="section-title">分配方式</view>
+      <radio-group name="distributionType" bindchange="onDistributionChange">
+        <view class="radio-item">
+          <radio value="0" checked="{{formData.distributionType === 0}}" />
+          <text>随机分配</text>
+        </view>
+        <view class="radio-item">
+          <radio value="1" checked="{{formData.distributionType === 1}}" />
+          <text>偏好优先</text>
+        </view>
+      </radio-group>
+      <view class="form-tip" wx:if="{{formData.distributionType === 1}}">
+        <text>选择偏好优先后，系统将根据成员偏好匹配度智能分配版本</text>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="section-title">截止时间</view>
+      <picker mode="date" bindchange="onDateChange" start="{{today}}">
+        <view class="picker-value {{formData.deadline ? '' : 'placeholder'}}">
+          {{formData.deadline || '请选择截止日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 保存为模板 -->
+    <view class="form-section template-save-section">
+      <view class="section-title">拼车模板</view>
+      <view class="toggle-row" bindtap="onToggleSaveTemplate">
+        <view class="toggle-track {{saveAsTemplate ? 'on' : ''}}">
+          <view class="toggle-thumb"></view>
+        </view>
+        <text class="toggle-label">发布同时保存为模板</text>
+      </view>
+      <view class="form-item" wx:if="{{saveAsTemplate}}">
+        <input class="input" placeholder="输入模板名称，如：TWS日专" value="{{templateName}}" bindinput="onTemplateNameInput" />
+      </view>
+    </view>
+
+    <view class="form-actions">
+      <button class="btn-primary" form-type="submit" loading="{{submitting}}" disabled="{{submitting}}">发布拼车</button>
+    </view>
+  </form>
+</view>

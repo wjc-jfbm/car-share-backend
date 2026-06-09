@@ -1,0 +1,122 @@
+@startuml
+skinparam linetype solid
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    ArrowColor #000000
+    FontSize 13
+    AttributeFontSize 11
+    StereotypeFontSize 11
+}
+
+class "用户" as user <<实体>> {
+    **id** : bigint <<PK>>
+    openid : varchar(64)
+    nickname : varchar(50)
+    credit_score : int
+    credit_level : int
+    role : int
+}
+
+class "用户偏好" as pref <<实体>> {
+    **id** : bigint <<PK>>
+    user_id : bigint <<FK>>
+    preferred_versions : varchar
+    preferred_cards : varchar
+    preferred_artists : varchar
+    auto_match : int
+}
+
+class "拼车" as car <<实体>> {
+    **id** : bigint <<PK>>
+    user_id : bigint <<FK>>
+    goods_id : bigint <<FK>>
+    title : varchar(100)
+    total_count : int
+    price_per : decimal
+    status : int
+    deadline : datetime
+}
+
+class "商品" as goods <<实体>> {
+    **id** : bigint <<PK>>
+    name : varchar(100)
+    type : varchar(50)
+    versions : varchar
+    cards : varchar
+    market_price : decimal
+}
+
+class "拼车成员" as member <<实体>> {
+    **id** : bigint <<PK>>
+    car_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    pay_status : int
+    evidence_status : int
+    is_owner : int
+    amount : decimal
+}
+
+class "凭证" as evidence <<实体>> {
+    **id** : bigint <<PK>>
+    car_member_id : bigint <<FK>>
+    car_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    type : int
+    image_url : varchar
+    status : int
+}
+
+class "订单" as order <<实体>> {
+    **id** : bigint <<PK>>
+    car_id : bigint <<FK>>
+    car_member_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    order_no : varchar(32)
+    amount : decimal
+    settle_status : int
+}
+
+class "物流" as logistics <<实体>> {
+    **id** : bigint <<PK>>
+    car_id : bigint <<FK>>
+    express_no : varchar(50)
+    express_company : varchar(50)
+    status : int
+    receiver_name : varchar
+}
+
+class "通知" as notification <<实体>> {
+    **id** : bigint <<PK>>
+    user_id : bigint <<FK>>
+    car_id : bigint <<FK>>
+    title : varchar(100)
+    content : varchar(500)
+    type : tinyint
+    is_read : tinyint
+}
+
+class "评价" as review <<实体>> {
+    **id** : bigint <<PK>>
+    car_id : bigint <<FK>>
+    from_user_id : bigint <<FK>>
+    to_user_id : bigint <<FK>>
+    rating : int
+    content : varchar(500)
+}
+
+user "1" -- "1" pref : 设置 >
+user "1" -- "N" car : 创建 >
+car "N" -- "1" goods : 关联 >
+car "1" -- "N" member : 包含 >
+user "1" -- "N" member : 参与 >
+member "1" -- "N" evidence : 上传 >
+member "1" -- "1" order : 生成 >
+car "1" -- "N" logistics : 发货 >
+user "1" -- "N" notification : 接收 >
+user "1" -- "N" review : 评价 >
+
+@enduml

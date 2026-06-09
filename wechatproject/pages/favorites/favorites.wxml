@@ -1,0 +1,51 @@
+<view class="page">
+  <!-- 头部统计 -->
+  <view class="stats-header" wx:if="{{list.length > 0}}">
+    <text class="stats-icon">❤️</text>
+    <text class="stats-text">共收藏了 <text class="highlight">{{total}}</text> 个拼车</text>
+  </view>
+
+  <!-- 收藏列表 -->
+  <view class="fav-list" wx:if="{{list.length > 0}}">
+    <view
+      class="fav-card"
+      wx:for="{{list}}"
+      wx:key="id"
+      bindtap="goToDetail"
+      data-id="{{item.carId}}"
+      hover-class="card-hover"
+    >
+      <view class="fav-top">
+        <view class="fav-user">
+          <text class="fav-avatar">{{item.carTitle ? item.carTitle[0] : '🚗'}}</text>
+          <text class="fav-title">{{item.carTitle || '未命名拼车'}}</text>
+        </view>
+        <view class="fav-time">{{item.timeLabel}}</view>
+      </view>
+      <view class="fav-bottom">
+        <text class="fav-hint">点击查看详情</text>
+        <view class="fav-btn" catchtap="removeFav" data-id="{{item.carId}}" data-index="{{index}}">
+          <text>取消收藏</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && list.length === 0}}">
+    <view class="empty-icon-wrap">
+      <text class="empty-icon">💝</text>
+    </view>
+    <text class="empty-text">还没有收藏</text>
+    <text class="empty-hint">在拼车详情页点击❤️收藏你感兴趣的拼车</text>
+    <view class="empty-btn" bindtap="goToIndex">去看看</view>
+  </view>
+
+  <view class="loading-state" wx:if="{{loading}}">
+    <view class="loading-dots">
+      <view class="dot dot-1"></view>
+      <view class="dot dot-2"></view>
+      <view class="dot dot-3"></view>
+    </view>
+  </view>
+</view>

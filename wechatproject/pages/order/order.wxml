@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="order-tabs">
+    <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
+    <view class="tab-item {{currentTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
+    <view class="tab-item {{currentTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">我参与的</view>
+  </view>
+
+  <scroll-view class="order-list" scroll-y>
+    <view class="order-card" wx:for="{{orderList}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+      <view class="order-header">
+        <text class="order-title">{{item.title}}</text>
+        <text class="tag {{item.status == 0 ? 'tag-pink' : item.status == 1 ? 'tag-yellow' : item.status == 2 ? 'tag-blue' : item.status == 3 ? 'tag-orange' : item.status == 4 ? 'tag-green' : 'tag-gray'}}">{{item.status == 0 ? '招募中' : item.status == 1 ? '进行中' : item.status == 2 ? '已结算' : item.status == 3 ? '配送中' : item.status == 4 ? '已完成' : '已取消'}}</text>
+      </view>
+      <view class="order-body">
+        <view class="order-info">
+          <text class="order-goods">{{item.goodsName || item.goods_name}}</text>
+          <text class="order-count">{{item.currentCount || item.current_count}}/{{item.totalCount || item.total_count}}人</text>
+        </view>
+        <view class="order-footer">
+          <text class="order-price">¥{{item.pricePer || item.price_per}}/人</text>
+          <text class="order-time">{{item.createdAt || item.created_at}}</text>
+        </view>
+        <view class="order-ship-hint" wx:if="{{item.isOwner && (item.status == 2 || item.status == '2')}}">
+          <text class="ship-hint-text">待发货</text>
+          <text class="ship-hint-go" catchtap="goToShip" data-id="{{item.id}}">去发货 ></text>
+        </view>
+        <view class="order-ship-hint order-ship-delivering" wx:if="{{item.isOwner && (item.status == 3 || item.status == '3')}}">
+          <text class="ship-hint-text">配送中</text>
+          <text class="ship-hint-go" catchtap="goToShip" data-id="{{item.id}}">查看物流 ></text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{orderList.length === 0 && !loading}}">
+      <image class="empty-img" src="/images/order-icon.png" mode="aspectFit" />
+      <text class="empty-text">暂无订单</text>
+      <button class="btn-primary" bindtap="goToIndex">去逛逛</button>
+    </view>
+  </scroll-view>
+</view>

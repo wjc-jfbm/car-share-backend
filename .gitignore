@@ -1,0 +1,59 @@
+# ============ Java ============
+*.class
+*.jar
+*.war
+*.ear
+target/
+bin/
+*.log
+*.tmp
+
+# ============ Maven ============
+**/target/
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/pom.xml.next
+**/dependency-reduced-pom.xml
+.mvn/timing.log
+.mvn/wrapper/
+
+# ============ Node ============
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ============ IDE ============
+.idea/
+*.iml
+*.swp
+*.swo
+.vscode/
+**/.vscode/
+.classpath
+.project
+.settings/
+
+# ============ 微信小程序 ===========
+wechatproject/project.config.json
+wechatproject/project.private.config.json
+wechatproject/node_modules/
+
+# ============ OS ============
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ============ 上传文件 ===========
+car-share-backend/uploads/
+**/uploads/*.jpg
+**/uploads/*.png
+!car-share-backend/uploads/.gitkeep
+
+# ============ 敏感信息 ===========
+**/application.yml
+!**/application-sample.yml
+**/.env
+**/.env.*

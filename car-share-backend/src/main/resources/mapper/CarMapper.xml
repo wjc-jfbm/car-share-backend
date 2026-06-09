@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.carshare.mapper.CarMapper">
+
+    <select id="selectCarPage" resultType="com.carshare.entity.Car">
+        SELECT c.*, u.nickname AS userNickname, u.credit_score AS userCredit
+        FROM car c
+        LEFT JOIN user u ON c.user_id = u.id
+        <where>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (c.title LIKE CONCAT('%', #{keyword}, '%') OR c.goods_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY c.created_at DESC
+    </select>
+
+    <update id="autoCloseExpiredCars">
+        UPDATE car SET status = 5, closed_at = NOW()
+        WHERE status = 0 AND deadline IS NOT NULL AND deadline <![CDATA[ < ]]> #{now}
+    </update>
+
+    <select id="selectAdminCarPage" resultType="com.carshare.entity.Car">
+        SELECT c.*, u.nickname AS userNickname, u.credit_score AS userCredit
+        FROM car c
+        LEFT JOIN user u ON c.user_id = u.id
+        <where>
+            <if test="car.status != null">
+                AND c.status = #{car.status}
+            </if>
+            <if test="car.title != null and car.title != ''">
+                AND c.title LIKE CONCAT('%', #{car.title}, '%')
+            </if>
+        </where>
+        ORDER BY c.created_at DESC
+    </select>
+
+</mapper>

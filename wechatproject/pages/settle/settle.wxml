@@ -1,0 +1,136 @@
+<view class="container">
+  <view class="settle-header" wx:if="{{settleInfo}}">
+    <view class="header-row">
+      <text class="header-title">结算中心</text>
+      <text class="header-amount">¥{{settleInfo.total_amount}}</text>
+    </view>
+    <view class="header-stats">
+      <view class="stat-item">
+        <text class="stat-value">{{settleInfo.member_count}}</text>
+        <text class="stat-label">参与人数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value green">{{settleInfo.paid_count || 0}}</text>
+        <text class="stat-label">已付款</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value orange">{{settleInfo.pending_count || 0}}</text>
+        <text class="stat-label">待审核</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{settleInfo && settleInfo.members}}">
+    <view class="section-title">成员付款状态</view>
+    <view class="member-evidence-list">
+      <view class="member-evidence-card" wx:for="{{settleInfo.members}}" wx:key="id">
+        <view class="member-header">
+          <view class="member-avatar">
+            <text>{{item.avatarLetter || '?'}}</text>
+          </view>
+          <view class="member-info">
+            <text class="member-name">{{item.nickname || '用户'}}</text>
+            <text class="member-amount">¥{{item.amount}}</text>
+          </view>
+          <view class="member-status-group">
+            <text class="status-tag" style="background: {{payStatusMap[item.payStatus].color}}20; color: {{payStatusMap[item.payStatus].color}};">{{payStatusMap[item.payStatus].text}}</text>
+            <text class="status-tag" wx:if="{{item.evidenceUrl}}" style="background: {{evidenceStatusMap[item.evidenceStatus].color}}20; color: {{evidenceStatusMap[item.evidenceStatus].color}};">{{evidenceStatusMap[item.evidenceStatus].text}}</text>
+            <text class="tag tag-pink" wx:if="{{item.isOwner === 1}}">车主</text>
+          </view>
+        </view>
+
+        <view class="evidence-images" wx:if="{{item.evidenceImageLocalList.length > 0 || item.evidenceImageList.length > 0}}" bindtap="onPreviewMemberEvidence" data-member="{{item}}">
+          <image class="evidence-thumb" src="{{imgUrl}}" mode="aspectFill" wx:for="{{item.evidenceImageLocalList.length > 0 ? item.evidenceImageLocalList : item.evidenceImageList}}" wx:for-item="imgUrl" wx:key="index" wx:if="{{index < 3}}"></image>
+          <text class="evidence-view-hint">点击查看大图</text>
+        </view>
+
+        <view class="reject-reason" wx:if="{{item.evidenceStatus === 2 && item.evidenceRejectReason}}">
+          <text class="reject-label">驳回原因：</text>
+          <text class="reject-text">{{item.evidenceRejectReason}}</text>
+        </view>
+
+        <view class="review-action" wx:if="{{isOwner && item.evidenceUrl && item.evidenceStatus === 0 && item.isOwner !== 1}}">
+          <button class="btn-review" bindtap="onReviewEvidence" data-member="{{item}}">审核凭证</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{!isOwner}}">
+    <view class="section-title">上传付款凭证</view>
+    <view class="upload-grid">
+      <view class="upload-item" wx:for="{{evidenceUrlList}}" wx:key="index">
+        <image class="upload-image" src="{{item}}" mode="aspectFill" bindtap="previewEvidence" data-index="{{index}}"></image>
+        <view class="upload-remove" catchtap="removeEvidence" data-index="{{index}}">
+          <text class="remove-icon">&#x2715;</text>
+        </view>
+      </view>
+      <view class="upload-add" bindtap="chooseEvidence" wx:if="{{evidenceUrlList.length < 6}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">{{evidenceUrlList.length}}/6</text>
+      </view>
+    </view>
+    <text class="upload-hint">支持上传转账截图、支付记录等凭证，最多6张</text>
+    <button class="btn-primary" bindtap="onSubmit" loading="{{isSubmitting}}" disabled="{{isSubmitting || evidenceUrlList.length === 0}}">提交凭证</button>
+  </view>
+
+  <view class="section" wx:if="{{isOwner && !carSettled}}">
+    <view class="owner-actions">
+      <button class="btn-settle" bindtap="onConfirmSettle">确认结算</button>
+      <text class="settle-hint">所有成员付款审核通过后，可确认结算进入发货阶段</text>
+    </view>
+  </view>
+
+  <view class="section ship-section" wx:if="{{isOwner && carSettled}}">
+    <view class="ship-notice">
+      <text class="ship-notice-text">结算已完成，请尽快发货！</text>
+    </view>
+    <button class="btn-ship-go" bindtap="goToShip">去发货</button>
+    <text class="settle-hint">点击上方按钮填写快递信息完成发货</text>
+  </view>
+
+  <view class="section ship-section" wx:if="{{!isOwner && carSettled}}">
+    <view class="ship-notice">
+      <text class="ship-notice-text">结算已完成，等待车主发货</text>
+    </view>
+    <button class="btn-ship-go btn-ship-track" bindtap="goToShip">查看物流</button>
+  </view>
+
+  <view class="modal-mask" wx:if="{{showReviewModal}}" bindtap="onCancelReview"></view>
+  <view class="modal-content" wx:if="{{showReviewModal}}">
+    <view class="modal-header">
+      <text class="modal-title">审核凭证</text>
+      <text class="modal-close" bindtap="onCancelReview">&#x2715;</text>
+    </view>
+    <view class="modal-body">
+      <view class="review-member" wx:if="{{reviewingMember}}">
+        <text class="review-name">{{reviewingMember.nickname || '用户'}}</text>
+        <text class="review-amount">¥{{reviewingMember.amount}}</text>
+      </view>
+
+      <view class="review-evidence-preview" wx:if="{{reviewingMember && (reviewingMember.evidenceImageLocalList.length > 0 || reviewingMember.evidenceImageList.length > 0)}}">
+        <image class="review-image" src="{{imgUrl}}" mode="aspectFit" wx:for="{{reviewingMember.evidenceImageLocalList.length > 0 ? reviewingMember.evidenceImageLocalList : reviewingMember.evidenceImageList}}" wx:for-item="imgUrl" wx:key="index" bindtap="onPreviewMemberEvidence" data-member="{{reviewingMember}}"></image>
+      </view>
+
+      <view class="review-options">
+        <view class="review-option {{reviewStatus === 1 ? 'selected approve' : ''}}" bindtap="onReviewStatusChange" data-status="1">
+          <text class="review-option-icon">&#x2713;</text>
+          <text class="review-option-text">通过</text>
+        </view>
+        <view class="review-option {{reviewStatus === 2 ? 'selected reject' : ''}}" bindtap="onReviewStatusChange" data-status="2">
+          <text class="review-option-icon">&#x2717;</text>
+          <text class="review-option-text">驳回</text>
+        </view>
+      </view>
+
+      <view class="reject-input" wx:if="{{reviewStatus === 2}}">
+        <textarea class="reject-textarea" placeholder="请输入驳回原因，方便成员重新提交" value="{{rejectReason}}" bindinput="onRejectReasonInput" maxlength="200"></textarea>
+        <text class="reject-count">{{rejectReason.length}}/200</text>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="btn-cancel" bindtap="onCancelReview">取消</button>
+      <button class="btn-confirm" bindtap="onSubmitReview">确认审核</button>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,65 @@
+@startuml
+skinparam linetype solid
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    ArrowColor #000000
+    FontSize 14
+    AttributeFontSize 12
+    StereotypeFontSize 12
+}
+
+class "拼车成员" as member <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    pay_status : int
+    evidence_status : int
+    evidence_url : varchar(500)
+    amount : decimal(10,2)
+    is_owner : int
+}
+
+class "凭证" as evidence <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_member_id : bigint <<FK>>
+    car_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    type : int
+    image_url : varchar(500)
+    status : int
+    reviewed_by : bigint <<FK>>
+}
+
+class "订单" as order <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_id : bigint <<FK>>
+    car_member_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    order_no : varchar(32)
+    amount : decimal(10,2)
+    settle_status : int
+}
+
+class "物流" as logistics <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_id : bigint <<FK>>
+    express_no : varchar(50)
+    express_company : varchar(50)
+    status : int
+    receiver_name : varchar(50)
+    receiver_phone : varchar(20)
+}
+
+member "1" -- "N" evidence : 上传 >
+member "1" -- "1" order : 生成 >
+member "1" -- "1" logistics : 发货 >
+
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+skinparam linetype solid
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    ArrowColor #000000
+    FontSize 14
+    AttributeFontSize 12
+    StereotypeFontSize 12
+}
+
+class "用户\n(评价发起者)" as from_user <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    nickname : varchar(50)
+    credit_score : int
+    credit_level : int
+}
+
+class "评价" as review <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_id : bigint <<FK>>
+    from_user_id : bigint <<FK>>
+    to_user_id : bigint <<FK>>
+    type : int
+    rating : int
+    content : varchar(500)
+}
+
+class "用户\n(评价接收者)" as to_user <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    nickname : varchar(50)
+    credit_score : int
+    credit_level : int
+}
+
+from_user "1" -- "N" review : 发起 >
+review "N" -- "1" to_user : 指向 >
+
+@enduml

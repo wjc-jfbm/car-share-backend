@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "拼车广场",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

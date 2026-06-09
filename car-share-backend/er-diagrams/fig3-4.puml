@@ -1,0 +1,47 @@
+@startuml
+skinparam linetype solid
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+skinparam class {
+    BackgroundColor #FFFFFF
+    BorderColor #000000
+    ArrowColor #000000
+    FontSize 14
+    AttributeFontSize 12
+    StereotypeFontSize 12
+}
+
+class "用户" as user <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    nickname : varchar(50)
+    credit_score : int
+    role : int
+}
+
+class "拼车" as car <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    user_id : bigint <<FK>>
+    title : varchar(100)
+    total_count : int
+    status : int
+}
+
+class "拼车成员" as member <<实体>> {
+    **id** : bigint <<PK>>
+    --
+    car_id : bigint <<FK>>
+    user_id : bigint <<FK>>
+    pref_versions : varchar(255)
+    pref_cards : varchar(255)
+    pay_status : int
+    evidence_status : int
+    is_owner : int
+}
+
+user "1" -- "N" member : 参与 >
+car "1" -- "N" member : 包含 >
+
+@enduml

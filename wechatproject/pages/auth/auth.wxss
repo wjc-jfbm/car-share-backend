@@ -1,0 +1,286 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FF6B9D 0%, #FF8FA3 40%, #f5f5f5 40%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 85%;
+  background: white;
+  border-radius: 24rpx;
+  padding: 60rpx 40rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0,0,0,0.1);
+}
+
+.logo-area {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.logo {
+  width: 140rpx;
+  height: 140rpx;
+  background: linear-gradient(135deg, #FF6B9D, #FF8FA3);
+  border-radius: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24rpx;
+}
+
+.logo-text {
+  font-size: 64rpx;
+  color: white;
+  font-weight: bold;
+}
+
+.logo-img {
+  width: 80rpx;
+  height: 80rpx;
+}
+
+.app-name {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.app-desc {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.mode-tabs {
+  display: flex;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 6rpx;
+  margin-bottom: 40rpx;
+}
+
+.mode-tab {
+  flex: 1;
+  text-align: center;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  color: #999;
+  border-radius: 36rpx;
+  transition: all 0.3s;
+}
+
+.mode-tab.active {
+  background: white;
+  color: #FF6B9D;
+  font-weight: 600;
+  box-shadow: 0 2rpx 12rpx rgba(255, 107, 157, 0.15);
+}
+
+.login-content {
+  min-height: 300rpx;
+}
+
+.wechat-login-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-wechat {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: #07C160;
+  color: white;
+  border: none;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-wechat[disabled] {
+  background: #a0e8b8;
+  color: rgba(255,255,255,0.8);
+}
+
+.btn-wechat-phone {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: white;
+  color: #07C160;
+  border: 2rpx solid #07C160;
+  border-radius: 48rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-wechat-phone[disabled] {
+  border-color: #a0e8b8;
+  color: #a0e8b8;
+}
+
+.wechat-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 12rpx;
+  margin-bottom: 8rpx;
+  text-align: center;
+}
+
+.wechat-hint.warn {
+  color: #FF9800;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 28rpx 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background: #eee;
+}
+
+.divider-text {
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: #ccc;
+}
+
+.account-login-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
+.sub-tab {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.sub-tab-link {
+  font-size: 26rpx;
+  color: #FF6B9D;
+}
+
+.input-group {
+  margin-bottom: 24rpx;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  height: 88rpx;
+  border: 2rpx solid #e8e8e8;
+  border-radius: 44rpx;
+  padding: 0 32rpx;
+  background: #fafafa;
+}
+
+.input-row:focus-within {
+  border-color: #FF6B9D;
+  background: white;
+}
+
+.input-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+}
+
+.input-icon-img {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  opacity: 0.5;
+}
+
+.input-field {
+  flex: 1;
+  height: 88rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.toggle-pwd {
+  font-size: 24rpx;
+  color: #FF6B9D;
+  padding: 8rpx 16rpx;
+  white-space: nowrap;
+}
+
+.btn-account {
+  width: 100%;
+  height: 96rpx;
+  line-height: 96rpx;
+  background: linear-gradient(135deg, #FF6B9D, #FF8FA3);
+  color: white;
+  border: none;
+  border-radius: 48rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12rpx;
+}
+
+.btn-account[disabled] {
+  background: linear-gradient(135deg, #ffb3cc, #ffc4d4);
+  color: rgba(255,255,255,0.8);
+}
+
+.account-hint {
+  display: block;
+  text-align: center;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 20rpx;
+}
+
+.account-hint .link {
+  color: #FF6B9D;
+  font-weight: 500;
+}
+
+.agreement-area {
+  margin-top: 32rpx;
+  text-align: center;
+}
+
+.agreement {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.agreement .link {
+  color: #FF6B9D;
+}
+
+.back-btn {
+  text-align: center;
+  padding: 24rpx 0 0;
+  font-size: 26rpx;
+  color: #999;
+}

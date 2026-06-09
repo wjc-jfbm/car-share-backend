@@ -1,0 +1,319 @@
+<view class="page">
+  <view class="header">
+    <view class="header-bg"></view>
+    <view class="header-content">
+      <view class="header-top">
+        <view class="header-left">
+          <text class="header-greeting">{{greeting}}</text>
+          <text class="header-sub">{{isLogin ? nickname : '登录后享受更多功能'}}</text>
+        </view>
+        <view class="header-right">
+          <view class="header-icon-btn" bindtap="goToNotification">
+            <image class="header-icon" src="/images/bell-white.png" mode="aspectFit" />
+            <view class="unread-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
+          </view>
+          <view class="header-avatar" bindtap="goToProfile">
+            <text class="avatar-text">{{isLogin ? (nickname ? nickname[0] : 'U') : '?'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="search-bar" bindtap="onSearchFocus">
+        <image class="search-icon" src="/images/search-gray.png" mode="aspectFit" />
+        <input
+          class="search-input"
+          placeholder="搜索拼车、商品、车主..."
+          placeholder-class="search-placeholder"
+          value="{{keyword}}"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+          confirm-type="search"
+          focus="{{searchFocus}}"
+        />
+        <view class="search-clear" wx:if="{{keyword}}" bindtap="onClearSearch">
+          <text class="clear-icon">✕</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="main-scroll"
+    scroll-y
+    bindscrolltolower="onLoadMore"
+    refresher-enabled="{{true}}"
+    refresher-triggered="{{refreshing}}"
+    bindrefresherrefresh="onPullDownRefresh"
+  >
+    <view class="banner-section">
+      <swiper class="banner-swiper" indicator-dots indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#fff" autoplay circular interval="4000">
+        <swiper-item>
+          <view class="banner-card banner-1">
+            <view class="banner-text-wrap">
+              <text class="banner-title">安全拼车</text>
+              <text class="banner-desc">信用体系保障 · 凭证化结算</text>
+            </view>
+            <image class="banner-icon" src="/images/shield.png" mode="aspectFit" />
+          </view>
+        </swiper-item>
+        <swiper-item>
+          <view class="banner-card banner-2">
+            <view class="banner-text-wrap">
+              <text class="banner-title">智能匹配</text>
+              <text class="banner-desc">偏好优先 · 成团率预测</text>
+            </view>
+            <image class="banner-icon" src="/images/star.png" mode="aspectFit" />
+          </view>
+        </swiper-item>
+        <swiper-item>
+          <view class="banner-card banner-3">
+            <view class="banner-text-wrap">
+              <text class="banner-title">一键发起</text>
+              <text class="banner-desc">快速组队 · 自动分配</text>
+            </view>
+            <image class="banner-icon" src="/images/publish.png" mode="aspectFit" />
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
+
+    <view class="quick-actions">
+      <view class="quick-item" bindtap="goToPublish">
+        <view class="quick-icon-wrap qi-1">
+          <text class="quick-emoji">🚗</text>
+        </view>
+        <text class="quick-label">发起拼车</text>
+      </view>
+      <view class="quick-item" bindtap="goToRecommend">
+        <view class="quick-icon-wrap qi-2">
+          <text class="quick-emoji">🎯</text>
+        </view>
+        <text class="quick-label">为你推荐</text>
+      </view>
+      <view class="quick-item" bindtap="goToOrder">
+        <view class="quick-icon-wrap qi-3">
+          <text class="quick-emoji">📦</text>
+        </view>
+        <text class="quick-label">我的订单</text>
+      </view>
+      <view class="quick-item" bindtap="goToStatistics">
+        <view class="quick-icon-wrap qi-4">
+          <text class="quick-emoji">📊</text>
+        </view>
+        <text class="quick-label">数据统计</text>
+      </view>
+    </view>
+
+    <view class="platform-stats" wx:if="{{platformStats}}">
+      <view class="stat-item">
+        <text class="stat-num">{{platformStats.totalUsers || 0}}</text>
+        <text class="stat-label">用户</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-num">{{platformStats.totalCars || 0}}</text>
+        <text class="stat-label">拼车</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-num">{{platformStats.activeCars || 0}}</text>
+        <text class="stat-label">进行中</text>
+      </view>
+      <view class="stat-divider"></view>
+      <view class="stat-item">
+        <text class="stat-num">{{platformStats.completedCars || 0}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+    </view>
+
+    <view class="section-header">
+      <view class="section-title-wrap">
+        <text class="section-title">拼车广场</text>
+        <text class="section-sub">发现感兴趣的车</text>
+      </view>
+    </view>
+
+    <view class="filter-bar">
+      <scroll-view class="filter-scroll" scroll-x enable-flex>
+        <view
+          class="filter-chip {{currentFilter === 'all' ? 'chip-active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="all"
+        >
+          <text>全部</text>
+        </view>
+        <view
+          class="filter-chip {{currentFilter === 'recruiting' ? 'chip-active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="recruiting"
+        >
+          <text>🟢 招募中</text>
+        </view>
+        <view
+          class="filter-chip {{currentFilter === 'grouping' ? 'chip-active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="grouping"
+        >
+          <text>🔵 成团中</text>
+        </view>
+        <view
+          class="filter-chip {{currentFilter === 'new' ? 'chip-active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="new"
+        >
+          <text>⏰ 最新</text>
+        </view>
+        <view
+          class="filter-chip {{currentFilter === 'hot' ? 'chip-active' : ''}}"
+          bindtap="onFilterChange"
+          data-filter="hot"
+        >
+          <text>🔥 热门</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 骨架屏加载 -->
+    <view class="skeleton-section" wx:if="{{loading && carList.length === 0 && !loadError}}">
+      <view class="skeleton-banner"></view>
+      <view class="skeleton-actions">
+        <view class="skeleton-action-item" wx:for="{{4}}" wx:key="index">
+          <view class="skeleton skeleton-circle"></view>
+          <view class="skeleton skeleton-text skeleton-text-short"></view>
+        </view>
+      </view>
+      <view class="skeleton-stats">
+        <view class="skeleton skeleton-stat" wx:for="{{4}}" wx:key="index"></view>
+      </view>
+      <view class="skeleton-filter">
+        <view class="skeleton skeleton-chip" wx:for="{{4}}" wx:key="index"></view>
+      </view>
+      <view class="skeleton-card-list">
+        <view class="skeleton-card" wx:for="{{3}}" wx:key="index">
+          <view class="skeleton-card-header">
+            <view class="skeleton skeleton-avatar"></view>
+            <view class="skeleton-card-user">
+              <view class="skeleton skeleton-text skeleton-text-name"></view>
+              <view class="skeleton skeleton-text skeleton-text-time"></view>
+            </view>
+            <view class="skeleton skeleton-badge"></view>
+          </view>
+          <view class="skeleton skeleton-text skeleton-text-title"></view>
+          <view class="skeleton skeleton-text skeleton-text-desc"></view>
+          <view class="skeleton-card-progress">
+            <view class="skeleton skeleton-progress-header">
+              <view class="skeleton skeleton-text skeleton-text-small"></view>
+              <view class="skeleton skeleton-text skeleton-text-small"></view>
+            </view>
+            <view class="skeleton skeleton-progress-bar"></view>
+          </view>
+          <view class="skeleton-card-footer">
+            <view class="skeleton skeleton-text skeleton-text-price"></view>
+            <view class="skeleton skeleton-btn"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 错误状态 -->
+    <view class="error-state" wx:if="{{loadError && carList.length === 0}}">
+      <view class="error-icon">⚠️</view>
+      <text class="error-text">{{errorMsg || '加载失败'}}</text>
+      <text class="error-hint">网络异常，请检查后重试</text>
+      <view class="error-btn" bindtap="onRetry">
+        <text>重新加载</text>
+      </view>
+    </view>
+
+    <view class="car-list" wx:if="{{carList.length > 0}}">
+      <view
+        class="car-card"
+        wx:for="{{carList}}"
+        wx:key="id"
+        bindtap="goToDetail"
+        data-id="{{item.id}}"
+        hover-class="car-card-hover"
+      >
+        <view class="card-header">
+          <view class="card-user">
+            <view class="user-avatar" style="background: {{avatarColors[item.index % 6]}}">
+              <text>{{item.userNickname ? item.userNickname[0] : '?'}}</text>
+            </view>
+            <view class="user-info">
+              <text class="user-name">{{item.userNickname || '匿名用户'}}</text>
+              <text class="user-time">{{item.timeLabel || '刚刚'}}</text>
+            </view>
+          </view>
+          <view class="status-badge status-{{item.status}}">
+            <text>{{item.status === 0 ? '招募中' : item.status === 1 ? '已截止' : item.status === 2 ? '已完成' : '已取消'}}</text>
+          </view>
+        </view>
+
+        <view class="card-body">
+          <text class="card-title">{{item.title}}</text>
+          <view class="card-tags" wx:if="{{item.goodsName || item.distributionType !== undefined}}">
+            <text class="tag tag-goods" wx:if="{{item.goodsName}}">{{item.goodsName}}</text>
+            <text class="tag tag-dist" wx:if="{{item.distributionType === 1}}">偏好优先</text>
+            <text class="tag tag-credit" wx:if="{{item.minCreditScore && item.minCreditScore > 0}}">信用≥{{item.minCreditScore}}</text>
+          </view>
+        </view>
+
+        <view class="card-progress-section">
+          <view class="progress-header">
+            <text class="progress-label">组队进度</text>
+            <text class="progress-num">{{item.currentCount}}/{{item.totalCount}}人</text>
+          </view>
+          <view class="progress-track">
+            <view class="progress-fill" style="width: {{item.totalCount ? (item.currentCount / item.totalCount * 100) : 0}}%"></view>
+          </view>
+          <view class="progress-footer" wx:if="{{item.successRate}}">
+            <text class="success-rate">成团率 {{item.successRate}}%</text>
+          </view>
+        </view>
+
+        <view class="card-footer">
+          <view class="card-price">
+            <text class="price-symbol">¥</text>
+            <text class="price-amount">{{item.pricePer || 0}}</text>
+            <text class="price-unit">/人</text>
+          </view>
+          <view class="card-action">
+            <text class="action-text">{{item.status === 0 ? '立即参与' : '查看详情'}}</text>
+            <text class="action-arrow">→</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:if="{{isEmpty && !loading && !loadError}}">
+      <view class="empty-icon-area">
+        <text class="empty-icon">🚗</text>
+      </view>
+      <text class="empty-text">{{keyword ? '没有找到匹配的拼车' : '暂无拼车信息'}}</text>
+      <text class="empty-hint">{{keyword ? '试试其他关键词' : '快来发起第一个拼车吧'}}</text>
+      <view class="empty-btn" bindtap="goToPublish" wx:if="{{!keyword}}">
+        <text>+ 发起拼车</text>
+      </view>
+    </view>
+
+    <view class="loading-state" wx:if="{{loading}}">
+      <view class="loading-dots">
+        <view class="dot dot-1"></view>
+        <view class="dot dot-2"></view>
+        <view class="dot dot-3"></view>
+      </view>
+      <text class="loading-text">加载中</text>
+    </view>
+
+    <view class="no-more" wx:if="{{!hasMore && carList.length > 0 && !loading}}">
+      <view class="no-more-line"></view>
+      <text class="no-more-text">到底了</text>
+      <view class="no-more-line"></view>
+    </view>
+  </scroll-view>
+
+  <view class="fab-btn" bindtap="goToPublish" hover-class="fab-hover">
+    <text class="fab-icon">+</text>
+    <text class="fab-label">发起</text>
+  </view>
+</view>

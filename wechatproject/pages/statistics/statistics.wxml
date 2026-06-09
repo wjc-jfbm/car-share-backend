@@ -1,0 +1,63 @@
+<view class="container">
+  <view class="loading-mask" wx:if="{{loading}}">
+    <text>加载统计数据中...</text>
+  </view>
+
+  <view class="section" wx:if="{{!loading}}">
+    <view class="section-title">我的数据概览</view>
+    <view class="stats-grid">
+      <view class="stat-card">
+        <text class="stat-value">{{userStats.createdCount || 0}}</text>
+        <text class="stat-label">发起拼车</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value">{{userStats.joinedCount || 0}}</text>
+        <text class="stat-label">参与拼车</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value">{{userStats.completedCreatedCount || 0}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-value">{{userStats.creditScore || 0}}</text>
+        <text class="stat-label">信用积分</text>
+      </view>
+    </view>
+
+    <view class="stats-grid stats-grid-3">
+      <view class="stat-card-sm">
+        <text class="stat-value-sm">{{userStats.avgRating || 0}}</text>
+        <text class="stat-label">平均评分</text>
+      </view>
+      <view class="stat-card-sm">
+        <text class="stat-value-sm">{{userStats.reviewCount || 0}}</text>
+        <text class="stat-label">收到评价</text>
+      </view>
+      <view class="stat-card-sm">
+        <text class="stat-value-sm">{{userStats.paidCount || 0}}</text>
+        <text class="stat-label">已付款</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{!loading}}">
+    <view class="section-title">信用积分趋势</view>
+    <view class="chart-container">
+      <canvas type="2d" id="creditCanvas" class="chart-canvas"></canvas>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{!loading}}">
+    <view class="section-title">拼车状态分布</view>
+    <view class="chart-container">
+      <canvas type="2d" id="statusCanvas" class="chart-canvas"></canvas>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{!loading}}">
+    <view class="section-title">月度参与趋势</view>
+    <view class="chart-container">
+      <canvas type="2d" id="monthlyCanvas" class="chart-canvas"></canvas>
+    </view>
+  </view>
+</view>
