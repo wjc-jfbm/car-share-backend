@@ -3,15 +3,13 @@ const { request } = require('./utils/request');
 
 App({
   onLaunch() {
-    // 展示本地存储能力
     const logs = wx.getStorageSync('logs') || []
     logs.unshift(Date.now())
     wx.setStorageSync('logs', logs)
 
-    // 检查是否有有效 token
+    // 检查 token
     const token = wx.getStorageSync('token');
     if (!token) {
-      // 静默登录：获取 code 但不阻塞启动
       wx.login({
         success: (res) => {
           if (res.code) {
@@ -20,8 +18,21 @@ App({
         }
       });
     }
+
+    // 监听网络状态
+    this.globalData.isOnline = true;
+    wx.onNetworkStatusChange((res) => {
+      this.globalData.isOnline = res.isConnected;
+      // 触发全局事件
+      var pages = getCurrentPages();
+      var page = pages[pages.length - 1];
+      if (page && page.onNetworkChange) {
+        page.onNetworkChange(res.isConnected);
+      }
+    });
   },
   globalData: {
-    userInfo: null
+    userInfo: null,
+    isOnline: true
   }
 })

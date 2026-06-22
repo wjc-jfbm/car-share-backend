@@ -1,6 +1,7 @@
 package com.carshare.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.*;
 import com.carshare.mapper.*;
 import com.carshare.service.StatisticsService;
@@ -40,7 +41,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         long createdCount = carMapper.selectCount(createdWrapper);
 
         LambdaQueryWrapper<Car> completedCreatedWrapper = new LambdaQueryWrapper<>();
-        completedCreatedWrapper.eq(Car::getUserId, userId).in(Car::getStatus, 2);
+        completedCreatedWrapper.eq(Car::getUserId, userId).in(Car::getStatus, CarStatus.SETTLED.getCode());
         long completedCreatedCount = carMapper.selectCount(completedCreatedWrapper);
 
         LambdaQueryWrapper<CarMember> joinedWrapper = new LambdaQueryWrapper<>();
@@ -110,11 +111,11 @@ public class StatisticsServiceImpl implements StatisticsService {
         long totalCars = carMapper.selectCount(new LambdaQueryWrapper<>());
 
         LambdaQueryWrapper<Car> activeWrapper = new LambdaQueryWrapper<>();
-        activeWrapper.eq(Car::getStatus, 0);
+        activeWrapper.eq(Car::getStatus, CarStatus.RECRUITING.getCode());
         long activeCars = carMapper.selectCount(activeWrapper);
 
         LambdaQueryWrapper<Car> completedWrapper = new LambdaQueryWrapper<>();
-        completedWrapper.eq(Car::getStatus, 2);
+        completedWrapper.eq(Car::getStatus, CarStatus.SETTLED.getCode());
         long completedCars = carMapper.selectCount(completedWrapper);
 
         long totalMembers = carMemberMapper.selectCount(new LambdaQueryWrapper<>());
@@ -192,8 +193,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         Map<String, Object> result = new HashMap<>();
         List<Map<String, Object>> distribution = new ArrayList<>();
 
-        String[] statusNames = {"招募中", "已截止", "已完成", "已取消"};
-        int[] statusValues = {0, 1, 2, 3};
+        String[] statusNames = {CarStatus.RECRUITING.getLabel(), CarStatus.CLOSED.getLabel(), CarStatus.COMPLETED.getLabel(), CarStatus.CANCELLED.getLabel()};
+        int[] statusValues = {CarStatus.RECRUITING.getCode(), CarStatus.CLOSED.getCode(), CarStatus.COMPLETED.getCode(), CarStatus.CANCELLED.getCode()};
 
         LambdaQueryWrapper<CarMember> memberWrapper = new LambdaQueryWrapper<>();
         memberWrapper.eq(CarMember::getUserId, userId);

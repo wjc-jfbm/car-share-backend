@@ -1,4 +1,5 @@
 var { request } = require('../../utils/request');
+var { getStatusInfo } = require('../../utils/status');
 
 Page({
   data: {
@@ -58,6 +59,11 @@ Page({
         item._matchLabel = that.getMatchLabel(score);
         item._matchColor = that.getMatchColor(score);
         item._matchAngle = Math.round(score * 360);
+        // 预计算状态信息
+        if (item.car) {
+          var statusInfo = getStatusInfo(item.car.status);
+          item.car._statusText = statusInfo.text;
+        }
       }
 
       var list = that.data.page === 1 ? newList : that.data.list.concat(newList);

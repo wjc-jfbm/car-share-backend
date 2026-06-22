@@ -48,7 +48,8 @@ public class CarAdminController extends BaseController
     @PutMapping
     public AjaxResult edit(@RequestBody Car car)
     {
-        return toAjax(carService.updateCar(car));
+        Long userId = com.carshare.common.utils.SecurityUtils.getUserId();
+        return toAjax(carService.updateCar(car, userId));
     }
 
     @PreAuthorize("@ss.hasPermi('business:car:remove')")

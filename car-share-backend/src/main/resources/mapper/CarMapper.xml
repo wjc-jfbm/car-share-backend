@@ -2,8 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.carshare.mapper.CarMapper">
 
+    <!-- 拼车列表分页查询（支持价格筛选 + 动态排序） -->
     <select id="selectCarPage" resultType="com.carshare.entity.Car">
-        SELECT c.*, u.nickname AS userNickname, u.credit_score AS userCredit
+        SELECT
+            c.id, c.user_id, c.title, c.goods_id, c.goods_name, c.goods_image,
+            c.description, c.total_count, c.current_count, c.price_total, c.price_per,
+            c.deposit_amount, c.deadline, c.distribution_type, c.is_restricted,
+            c.min_credit_score, c.status, c.success_rate, c.match_score, c.tags,
+            c.created_at, c.updated_at, c.closed_at, c.completed_at,
+            u.nickname AS userNickname, u.credit_score AS userCredit
         FROM car c
         LEFT JOIN user u ON c.user_id = u.id
         <where>
@@ -13,8 +20,46 @@
             <if test="keyword != null and keyword != ''">
                 AND (c.title LIKE CONCAT('%', #{keyword}, '%') OR c.goods_name LIKE CONCAT('%', #{keyword}, '%'))
             </if>
+            <if test="priceMin != null">
+                AND c.price_per >= #{priceMin}
+            </if>
+            <if test="priceMax != null">
+                AND c.price_per <![CDATA[ <= ]]> #{priceMax}
+            </if>
         </where>
-        ORDER BY c.created_at DESC
+        <choose>
+            <when test="sortBy == 'price'">
+                ORDER BY c.price_per ASC, c.created_at DESC
+            </when>
+            <when test="sortBy == 'hot'">
+                ORDER BY c.current_count DESC, c.created_at DESC
+            </when>
+            <when test="sortBy == 'deadline'">
+                ORDER BY c.deadline ASC, c.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY c.created_at DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 高性能 COUNT 查询 -->
+    <select id="countCarList" resultType="long">
+        SELECT COUNT(c.id) FROM car c
+        <where>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (c.title LIKE CONCAT('%', #{keyword}, '%') OR c.goods_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="priceMin != null">
+                AND c.price_per >= #{priceMin}
+            </if>
+            <if test="priceMax != null">
+                AND c.price_per <![CDATA[ <= ]]> #{priceMax}
+            </if>
+        </where>
     </select>
 
     <update id="autoCloseExpiredCars">
@@ -22,8 +67,15 @@
         WHERE status = 0 AND deadline IS NOT NULL AND deadline <![CDATA[ < ]]> #{now}
     </update>
 
+    <!-- 管理后台分页（显式字段） -->
     <select id="selectAdminCarPage" resultType="com.carshare.entity.Car">
-        SELECT c.*, u.nickname AS userNickname, u.credit_score AS userCredit
+        SELECT
+            c.id, c.user_id, c.title, c.goods_id, c.goods_name, c.goods_image,
+            c.description, c.total_count, c.current_count, c.price_total, c.price_per,
+            c.deposit_amount, c.deadline, c.distribution_type, c.is_restricted,
+            c.min_credit_score, c.status, c.success_rate, c.match_score, c.tags,
+            c.created_at, c.updated_at, c.closed_at, c.completed_at,
+            u.nickname AS userNickname, u.credit_score AS userCredit
         FROM car c
         LEFT JOIN user u ON c.user_id = u.id
         <where>

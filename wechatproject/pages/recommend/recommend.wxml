@@ -14,7 +14,7 @@
 
   <!-- 加载中骨架 -->
   <view class="skeleton-list" wx:if="{{loading && list.length === 0}}">
-    <view class="skeleton-card" wx:for="{{3}}" wx:key="index">
+    <view class="skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
       <view class="skeleton skeleton-header">
         <view class="skeleton skeleton-avatar"></view>
         <view class="skeleton skeleton-name"></view>
@@ -73,7 +73,7 @@
             </view>
           </view>
           <view class="status-badge status-{{item.car.status}}">
-            <text>{{item.car.status === 0 ? '招募中' : item.car.status === 1 ? '已截止' : '已完成'}}</text>
+            <text>{{item.car._statusText || '招募中'}}</text>
           </view>
         </view>
 

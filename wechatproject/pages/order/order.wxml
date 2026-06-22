@@ -1,15 +1,18 @@
 <view class="container">
-  <view class="order-tabs">
-    <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
-    <view class="tab-item {{currentTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
-    <view class="tab-item {{currentTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">我参与的</view>
+  <view class="order-header-bar">
+    <view class="order-tabs">
+      <view class="tab-item {{currentTab === 'all' ? 'active' : ''}}" bindtap="onTabChange" data-tab="all">全部</view>
+      <view class="tab-item {{currentTab === 'created' ? 'active' : ''}}" bindtap="onTabChange" data-tab="created">我发起的</view>
+      <view class="tab-item {{currentTab === 'joined' ? 'active' : ''}}" bindtap="onTabChange" data-tab="joined">我参与的</view>
+    </view>
+    <view class="export-btn" bindtap="onExport">📥 导出</view>
   </view>
 
   <scroll-view class="order-list" scroll-y>
     <view class="order-card" wx:for="{{orderList}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
       <view class="order-header">
         <text class="order-title">{{item.title}}</text>
-        <text class="tag {{item.status == 0 ? 'tag-pink' : item.status == 1 ? 'tag-yellow' : item.status == 2 ? 'tag-blue' : item.status == 3 ? 'tag-orange' : item.status == 4 ? 'tag-green' : 'tag-gray'}}">{{item.status == 0 ? '招募中' : item.status == 1 ? '进行中' : item.status == 2 ? '已结算' : item.status == 3 ? '配送中' : item.status == 4 ? '已完成' : '已取消'}}</text>
+        <text class="tag {{item._statusClass}}">{{item._statusText}}</text>
       </view>
       <view class="order-body">
         <view class="order-info">
@@ -19,6 +22,11 @@
         <view class="order-footer">
           <text class="order-price">¥{{item.pricePer || item.price_per}}/人</text>
           <text class="order-time">{{item.createdAt || item.created_at}}</text>
+        </view>
+        <view class="order-actions">
+          <view class="order-action-btn edit-btn" wx:if="{{item.isOwner && (item.status == 0 || item.status == '0')}}" catchtap="goToEdit" data-id="{{item.id}}">
+            ✏️ 编辑
+          </view>
         </view>
         <view class="order-ship-hint" wx:if="{{item.isOwner && (item.status == 2 || item.status == '2')}}">
           <text class="ship-hint-text">待发货</text>

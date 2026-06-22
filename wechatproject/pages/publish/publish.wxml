@@ -22,7 +22,7 @@
       <view class="section-title">基本信息</view>
       <view class="form-item">
         <text class="label">拼车标题</text>
-        <input class="input" name="title" placeholder="如：SEVENTEEN新专辑拼车" value="{{formData.title}}" />
+        <input class="input" name="title" placeholder="如：SEVENTEEN新专辑拼车" value="{{formData.title}}" bindinput="onTitleInput" />
       </view>
       <view class="form-item">
         <text class="label">商品名称</text>
@@ -122,7 +122,7 @@
     </view>
 
     <view class="form-actions">
-      <button class="btn-primary" form-type="submit" loading="{{submitting}}" disabled="{{submitting}}">发布拼车</button>
+      <button class="btn-primary" form-type="submit" loading="{{submitting}}" disabled="{{submitting}}">{{editId ? '保存修改' : '发布拼车'}}</button>
     </view>
   </form>
 </view>

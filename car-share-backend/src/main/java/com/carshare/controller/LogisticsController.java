@@ -15,12 +15,6 @@ public class LogisticsController {
     @Autowired
     private LogisticsService logisticsService;
 
-    @GetMapping("/{carId}")
-    public Result<?> getByCarId(@PathVariable Long carId) {
-        Logistics logistics = logisticsService.getByCarId(carId);
-        return Result.success(logistics);
-    }
-
     @GetMapping("/car/{carId}")
     public Result<?> getLogisticsByCarId(@PathVariable Long carId) {
         Map<String, Object> result = logisticsService.getLogisticsByCarId(carId);

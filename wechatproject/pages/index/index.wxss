@@ -386,6 +386,125 @@
   box-shadow: 0 4rpx 20rpx rgba(255, 107, 157, 0.3);
 }
 
+/* ====== 筛选排序面板 ====== */
+.filter-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 24rpx;
+  border-radius: 28rpx;
+  background: var(--bg-card);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  margin-left: auto;
+  position: relative;
+}
+
+.filter-dot {
+  color: var(--primary);
+  font-size: 20rpx;
+  position: absolute;
+  top: 4rpx;
+  right: 8rpx;
+}
+
+.filter-panel {
+  background: var(--bg-card);
+  margin: 0 28rpx 16rpx;
+  border-radius: var(--radius-md);
+  padding: 24rpx;
+  box-shadow: var(--shadow-md);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filter-section {
+  margin-bottom: 20rpx;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 12rpx;
+  display: block;
+  font-weight: 600;
+}
+
+.sort-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.sort-chip {
+  padding: 10rpx 24rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  background: var(--bg);
+  color: var(--text-secondary);
+  border: 2rpx solid var(--border);
+}
+
+.sort-chip.active {
+  background: #FDF2F8;
+  color: var(--primary);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.price-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.price-input {
+  flex: 1;
+  height: 64rpx;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 0 16rpx;
+  font-size: 26rpx;
+  color: var(--text);
+  border: 2rpx solid var(--border);
+}
+
+.price-sep {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+}
+
+.price-btn {
+  padding: 14rpx 28rpx;
+  background: linear-gradient(135deg, #FF6B9D, #A78BFA);
+  color: #fff;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12rpx;
+  border-top: 2rpx solid var(--border);
+}
+
+.filter-reset {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  padding: 8rpx 20rpx;
+}
+
 .chip-active text {
   color: #fff;
 }
@@ -608,6 +727,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.card-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.card-fav {
+  font-size: 36rpx;
+  padding: 8rpx;
+  transition: transform 0.2s;
+}
+
+.card-fav:active {
+  transform: scale(0.8);
+}
+
+.fav-active {
+  animation: heartBeat 0.3s ease;
+}
+
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .card-price {

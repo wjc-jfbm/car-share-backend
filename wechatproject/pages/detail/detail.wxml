@@ -175,7 +175,8 @@
     <button class="btn-secondary" bindtap="onClaimPreference" wx:if="{{hasJoined && !hasClaimed}}">认领偏好</button>
     <button class="btn-secondary" bindtap="goToSettle" wx:if="{{isOwner}}">结算中心</button>
     <button class="btn-danger" bindtap="onCloseCar" wx:if="{{isOwner}}">截止报名</button>
-    <button class="btn-primary" open-type="share">分享拼车</button>
+    <button class="btn-secondary" open-type="share">👥 分享拼车</button>
+    <button class="btn-primary" bindtap="onGeneratePoster">🖼️ 生成海报</button>
   </view>
 
   <view class="action-bar" wx:if="{{car.status == 1}}">
@@ -183,7 +184,8 @@
     <button class="btn-secondary" bindtap="onUploadEvidence" wx:if="{{hasJoined && !hasPaid && !hasEvidence && !isOwner}}">上传凭证</button>
     <button class="btn-secondary" bindtap="onClaimPreference" wx:if="{{hasJoined && !hasClaimed}}">认领偏好</button>
     <button class="btn-secondary" bindtap="goToSettle" wx:if="{{isOwner || hasPaid}}">结算中心</button>
-    <button class="btn-primary" open-type="share">分享拼车</button>
+    <button class="btn-secondary" open-type="share">👥 分享朋友</button>
+    <button class="btn-primary" bindtap="onGeneratePoster">🖼️ 海报</button>
   </view>
 
   <view class="action-bar" wx:if="{{car.status == 2}}">

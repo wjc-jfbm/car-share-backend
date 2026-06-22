@@ -1,5 +1,7 @@
-var baseUrl = 'http://localhost:8081/api';
-var serverUrl = 'http://localhost:8081';
+var config = require('./config');
+
+var baseUrl = config.BASE_URL || 'http://localhost:8081/api';
+var serverUrl = config.SERVER_URL || 'http://localhost:8081';
 
 // 真机调试时自动切换为局域网IP
 var platform = 'devtools';
@@ -13,8 +15,9 @@ try {
   } catch (e2) {}
 }
 if (platform !== 'devtools') {
-  baseUrl = 'http://192.168.245.125:8081/api';
-  serverUrl = 'http://192.168.245.125:8081';
+  var deviceIp = config.DEVTOOLS_IP || '192.168.245.125';
+  baseUrl = 'http://' + deviceIp + ':8081/api';
+  serverUrl = 'http://' + deviceIp + ':8081';
 }
 
 var isRedirecting = false;
@@ -54,6 +57,9 @@ function isAuthError(data) {
  * @param {number} options.timeout - 超时时间ms (默认15000)
  * @param {boolean} options.showError - 失败时是否显示toast (默认true)
  */
+// 网络状态监听（延迟执行避免页面注册时序问题）
+var isOnline = true;
+
 var request = function (options) {
   return new Promise(function (resolve, reject) {
     var token = wx.getStorageSync('token');
@@ -138,6 +144,8 @@ var request = function (options) {
         if (showError) {
           wx.showToast({ title: errMsg, icon: 'none', duration: 3000 });
         }
+        // 网络断开时全局标记
+        isOnline = false;
         reject({ message: errMsg, code: -1, errno: err.errno });
       }
     });

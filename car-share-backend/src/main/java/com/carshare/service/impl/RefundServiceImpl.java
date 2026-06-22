@@ -2,6 +2,7 @@ package com.carshare.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.*;
 import com.carshare.mapper.*;
 import com.carshare.service.NotificationService;
@@ -78,8 +79,8 @@ public class RefundServiceImpl implements RefundService {
             // 更新拼车人数
             if (car.getCurrentCount() > 0) {
                 car.setCurrentCount(car.getCurrentCount() - 1);
-                if (car.getStatus() == 1) {
-                    car.setStatus(0); // 回到招募中
+                if (car.getStatus() == CarStatus.CLOSED.getCode()) {
+                    car.setStatus(CarStatus.RECRUITING.getCode()); // 回到招募中
                 }
                 carMapper.updateById(car);
             }
@@ -125,7 +126,7 @@ public class RefundServiceImpl implements RefundService {
                 member.getUserId(), carId, "拼车未成团退款",
                 "拼车「" + car.getTitle() + "」未成团，已自动退款", 6);
         }
-        car.setStatus(4); // 已关闭
+        car.setStatus(CarStatus.COMPLETED.getCode()); // 已关闭
         car.setClosedAt(LocalDateTime.now());
         carMapper.updateById(car);
         return true;

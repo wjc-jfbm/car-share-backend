@@ -8,6 +8,7 @@ import com.carshare.service.MatchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @RestController
@@ -24,8 +25,11 @@ public class CarController {
     public Result<?> getCarList(@RequestParam(defaultValue = "1") Integer page,
                                 @RequestParam(defaultValue = "10") Integer pageSize,
                                 @RequestParam(required = false) Integer status,
-                                @RequestParam(required = false) String keyword) {
-        return Result.success(carService.getCarList(page, pageSize, status, keyword));
+                                @RequestParam(required = false) String keyword,
+                                @RequestParam(required = false) BigDecimal priceMin,
+                                @RequestParam(required = false) BigDecimal priceMax,
+                                @RequestParam(required = false, defaultValue = "time") String sortBy) {
+        return Result.success(carService.getCarList(page, pageSize, status, keyword, priceMin, priceMax, sortBy));
     }
 
     @GetMapping("/detail/{id}")
@@ -45,7 +49,7 @@ public class CarController {
                                @RequestAttribute("userId") Long userId,
                                @RequestBody Car car) {
         car.setId(id);
-        boolean success = carService.updateCar(car);
+        boolean success = carService.updateCar(car, userId);
         return success ? Result.success(null, "更新成功") : Result.fail("更新失败");
     }
 
@@ -130,6 +134,18 @@ public class CarController {
                                      @RequestParam(defaultValue = "1") Integer page,
                                      @RequestParam(defaultValue = "10") Integer pageSize) {
         return Result.success(carService.getMyJoinedCars(userId, page, pageSize));
+    }
+
+    @GetMapping("/history")
+    public Result<?> getHistoryCars(@RequestAttribute("userId") Long userId,
+                                     @RequestParam(defaultValue = "1") Integer page,
+                                     @RequestParam(defaultValue = "10") Integer pageSize) {
+        return Result.success(carService.getHistoryCars(userId, page, pageSize));
+    }
+
+    @GetMapping("/export")
+    public Result<?> exportCars(@RequestAttribute("userId") Long userId) {
+        return Result.success(carService.exportMyCars(userId));
     }
 
     @GetMapping("/recommend")

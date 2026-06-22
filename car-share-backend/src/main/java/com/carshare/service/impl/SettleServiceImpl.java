@@ -2,6 +2,7 @@ package com.carshare.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.*;
 import com.carshare.mapper.*;
 import com.carshare.common.utils.PageResult;
@@ -237,7 +238,7 @@ public class SettleServiceImpl implements SettleService {
         if (car == null || !car.getUserId().equals(userId)) {
             return false;
         }
-        if (car.getStatus() != 1) {
+        if (car.getStatus() != CarStatus.CLOSED.getCode()) {
             return false;
         }
 
@@ -264,7 +265,7 @@ public class SettleServiceImpl implements SettleService {
             createOrder(order);
         }
 
-        car.setStatus(2);
+        car.setStatus(CarStatus.SETTLED.getCode());
         carMapper.updateById(car);
 
         notificationService.sendToCarMembers(

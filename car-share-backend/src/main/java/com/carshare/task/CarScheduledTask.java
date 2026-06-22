@@ -1,6 +1,7 @@
 package com.carshare.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.Car;
 import com.carshare.entity.CarMember;
 import com.carshare.mapper.CarMapper;
@@ -34,14 +35,14 @@ public class CarScheduledTask {
     @Transactional
     public void autoCloseExpiredCars() {
         LambdaQueryWrapper<Car> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Car::getStatus, 0)
+        wrapper.eq(Car::getStatus, CarStatus.RECRUITING.getCode())
                .lt(Car::getDeadline, LocalDateTime.now())
                .isNotNull(Car::getDeadline);
 
         List<Car> expiredCars = carMapper.selectList(wrapper);
 
         for (Car car : expiredCars) {
-            car.setStatus(1);
+            car.setStatus(CarStatus.CLOSED.getCode());
             carMapper.updateById(car);
 
             notificationService.sendToCarMembers(
@@ -60,7 +61,7 @@ public class CarScheduledTask {
     @Transactional
     public void remindUnpaidMembers() {
         LambdaQueryWrapper<Car> carWrapper = new LambdaQueryWrapper<>();
-        carWrapper.in(Car::getStatus, 1, 2);
+        carWrapper.in(Car::getStatus, CarStatus.CLOSED.getCode(), CarStatus.SETTLED.getCode());
 
         List<Car> activeCars = carMapper.selectList(carWrapper);
 
@@ -91,14 +92,14 @@ public class CarScheduledTask {
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
 
         LambdaQueryWrapper<Car> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Car::getStatus, 0)
+        wrapper.eq(Car::getStatus, CarStatus.RECRUITING.getCode())
                .lt(Car::getCreatedAt, sevenDaysAgo);
 
         List<Car> staleCars = carMapper.selectList(wrapper);
 
         for (Car car : staleCars) {
             if (car.getCurrentCount() <= 1) {
-                car.setStatus(5);
+                car.setStatus(CarStatus.CANCELLED.getCode());
                 carMapper.updateById(car);
 
                 notificationService.sendNotification(

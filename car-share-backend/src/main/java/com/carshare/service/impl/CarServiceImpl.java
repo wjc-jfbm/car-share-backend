@@ -3,6 +3,7 @@ package com.carshare.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.Car;
 import com.carshare.entity.CarMember;
 import com.carshare.entity.Goods;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -59,9 +61,10 @@ public class CarServiceImpl implements CarService {
     private BlacklistService blacklistService;
 
     @Override
-    public Map<String, Object> getCarList(Integer page, Integer pageSize, Integer status, String keyword) {
+    public Map<String, Object> getCarList(Integer page, Integer pageSize, Integer status, String keyword,
+                                           BigDecimal priceMin, BigDecimal priceMax, String sortBy) {
         Page<Car> pageObj = new Page<>(page, pageSize);
-        var carPage = carMapper.selectCarPage(pageObj, status, keyword);
+        var carPage = carMapper.selectCarPage(pageObj, status, keyword, priceMin, priceMax, sortBy);
         return PageResult.of(carPage);
     }
 
@@ -111,7 +114,7 @@ public class CarServiceImpl implements CarService {
     public Long createCar(Long userId, Car car) {
         car.setUserId(userId);
         car.setCurrentCount(0);
-        car.setStatus(0);
+        car.setStatus(CarStatus.RECRUITING.getCode());
         try {
             car.setSuccessRate(matchService.calculateSuccessRate(car));
         } catch (Exception e) {
@@ -188,7 +191,7 @@ public class CarServiceImpl implements CarService {
         if (car == null) {
             return false;
         }
-        if (car.getStatus() != 0 && car.getStatus() != 1) {
+        if (car.getStatus() != CarStatus.RECRUITING.getCode() && car.getStatus() != CarStatus.CLOSED.getCode()) {
             return false;
         }
         if (car.getDeadline() != null && car.getDeadline().isBefore(LocalDateTime.now())) {
@@ -242,16 +245,23 @@ public class CarServiceImpl implements CarService {
                 joinNickname + " 加入了您的拼车「" + car.getTitle() + "」", 1);
 
         if (car.getCurrentCount() >= car.getTotalCount()) {
-            car.setStatus(1);
+            car.setStatus(CarStatus.CLOSED.getCode());
             car.setClosedAt(LocalDateTime.now());
             carMapper.updateById(car);
 
+            // 满员后自动触发智能分配
+            try {
+                matchService.smartDistribute(carId);
+            } catch (Exception e) {
+                log.warn("自动分配失败: {}", e.getMessage());
+            }
+
             notificationService.sendToCarMembers(
-                    carId, null, "成团成功",
-                    "拼车「" + car.getTitle() + "」已满员成团，请尽快完成付款并上传凭证", 2);
+                    carId, null, "🎉 成团成功 + 分配完成",
+                    "拼车「" + car.getTitle() + "」已满员成团，系统已智能分配版本/小卡，请查看你的分配结果", 2);
             notificationService.sendNotification(
-                    car.getUserId(), carId, "成团成功",
-                    "您发起的拼车「" + car.getTitle() + "」已满员成团，当前共" + car.getCurrentCount() + "人参与", 2);
+                    car.getUserId(), carId, "🎉 成团成功",
+                    "您发起的拼车「" + car.getTitle() + "」已满员成团，系统已完成智能分配，共" + car.getCurrentCount() + "人参与", 2);
         }
 
         return true;
@@ -265,7 +275,7 @@ public class CarServiceImpl implements CarService {
         if (car == null || !car.getUserId().equals(userId)) {
             return false;
         }
-        car.setStatus(1);
+        car.setStatus(CarStatus.CLOSED.getCode());
         car.setClosedAt(LocalDateTime.now());
         boolean result = carMapper.updateById(car) > 0;
 
@@ -377,6 +387,25 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
+    public Map<String, Object> getHistoryCars(Long userId, Integer page, Integer pageSize) {
+        LambdaQueryWrapper<CarMember> memberWrapper = new LambdaQueryWrapper<>();
+        memberWrapper.eq(CarMember::getUserId, userId);
+        List<CarMember> myMembers = carMemberMapper.selectList(memberWrapper);
+
+        List<Long> carIds = myMembers.stream().map(CarMember::getCarId).distinct().toList();
+        if (carIds.isEmpty()) {
+            return PageResult.empty(page, pageSize);
+        }
+
+        Page<Car> pageObj = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Car> carWrapper = new LambdaQueryWrapper<>();
+        carWrapper.in(Car::getId, carIds)
+                 .notIn(Car::getStatus, CarStatus.RECRUITING.getCode())
+                 .orderByDesc(Car::getCreatedAt);
+        return PageResult.of(carMapper.selectPage(pageObj, carWrapper));
+    }
+
+    @Override
     public Map<String, Object> getMyJoinedCars(Long userId, Integer page, Integer pageSize) {
         LambdaQueryWrapper<CarMember> memberWrapper = new LambdaQueryWrapper<>();
         memberWrapper.eq(CarMember::getUserId, userId).eq(CarMember::getIsOwner, 0);
@@ -400,10 +429,10 @@ public class CarServiceImpl implements CarService {
         if (car == null || !car.getUserId().equals(userId)) {
             return false;
         }
-        if (car.getStatus() != 3) {
+        if (car.getStatus() != CarStatus.SHIPPED.getCode()) {
             return false;
         }
-        car.setStatus(4);
+        car.setStatus(CarStatus.COMPLETED.getCode());
         car.setCompletedAt(LocalDateTime.now());
         return carMapper.updateById(car) > 0;
     }
@@ -415,10 +444,10 @@ public class CarServiceImpl implements CarService {
         if (car == null || !car.getUserId().equals(userId)) {
             return false;
         }
-        if (car.getStatus() != 0) {
+        if (car.getStatus() != CarStatus.RECRUITING.getCode()) {
             return false;
         }
-        car.setStatus(5);
+        car.setStatus(CarStatus.CANCELLED.getCode());
         return carMapper.updateById(car) > 0;
     }
 
@@ -441,9 +470,48 @@ public class CarServiceImpl implements CarService {
     }
  
     @Override
+    @Transactional
     @CacheEvict(value = "carList", allEntries = true)
-    public boolean updateCar(Car car) {
-        return carMapper.updateById(car) > 0;
+    public boolean updateCar(Car car, Long userId) {
+        Car existing = carMapper.selectById(car.getId());
+        if (existing == null) return false;
+        if (existing.getStatus() != CarStatus.RECRUITING.getCode()) return false;
+        if (!existing.getUserId().equals(userId)) return false;
+        if (car.getTitle() != null) existing.setTitle(car.getTitle());
+        if (car.getDescription() != null) existing.setDescription(car.getDescription());
+        if (car.getDeadline() != null) existing.setDeadline(car.getDeadline());
+        if (car.getPriceTotal() != null) {
+            existing.setPriceTotal(car.getPriceTotal());
+            existing.setPricePer(car.getPriceTotal().divide(
+                    BigDecimal.valueOf(existing.getTotalCount() != null && existing.getTotalCount() > 0 ? existing.getTotalCount() : 1),
+                    RoundingMode.HALF_UP));
+        }
+        return carMapper.updateById(existing) > 0;
+    }
+
+    @Override
+    public List<Map<String, Object>> exportMyCars(Long userId) {
+        LambdaQueryWrapper<CarMember> memberWrapper = new LambdaQueryWrapper<>();
+        memberWrapper.eq(CarMember::getUserId, userId);
+        List<CarMember> myMembers = carMemberMapper.selectList(memberWrapper);
+
+        List<Long> carIds = myMembers.stream().map(CarMember::getCarId).distinct().toList();
+        if (carIds.isEmpty()) return Collections.emptyList();
+
+        List<Car> cars = carMapper.selectBatchIds(carIds);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Car car : cars) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("title", car.getTitle());
+            row.put("goods", car.getGoodsName());
+            row.put("status", CarStatus.getLabel(car.getStatus()));
+            row.put("totalPrice", car.getPriceTotal());
+            row.put("perPrice", car.getPricePer());
+            row.put("members", car.getCurrentCount() + "/" + car.getTotalCount());
+            row.put("createdAt", car.getCreatedAt() != null ? car.getCreatedAt().toString() : "");
+            result.add(row);
+        }
+        return result;
     }
 
     @Override
@@ -492,7 +560,7 @@ public class CarServiceImpl implements CarService {
 
             // 1. 查找24小时内到期的招募中拼车，提醒车主
             LambdaQueryWrapper<Car> deadlineWrapper = new LambdaQueryWrapper<>();
-            deadlineWrapper.eq(Car::getStatus, 0)
+            deadlineWrapper.eq(Car::getStatus, CarStatus.RECRUITING.getCode())
                     .isNotNull(Car::getDeadline)
                     .le(Car::getDeadline, deadlineThreshold)
                     .ge(Car::getDeadline, now);
@@ -510,7 +578,7 @@ public class CarServiceImpl implements CarService {
 
             // 2. 查找满员/已截止但未完全付款的拼车 → 提醒未付款成员
             LambdaQueryWrapper<Car> unpaidWrapper = new LambdaQueryWrapper<>();
-            unpaidWrapper.in(Car::getStatus, 1);
+            unpaidWrapper.in(Car::getStatus, CarStatus.CLOSED.getCode());
             List<Car> closedCars = carMapper.selectList(unpaidWrapper);
 
             for (Car car : closedCars) {

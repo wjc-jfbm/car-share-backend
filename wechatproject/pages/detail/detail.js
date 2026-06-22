@@ -1,4 +1,5 @@
 var { request, uploadFile, getFullImageUrl, loadImage } = require('../../utils/request');
+var { getStatusInfo } = require('../../utils/status');
 
 Page({
   data: {
@@ -128,8 +129,6 @@ Page({
 
       // 检查收藏状态
       that.checkFavorite(carId);
-      // 加载评价
-      that.loadReviews(carId);
 
       // 静默加载图片，失败不阻塞
       if (result.goodsImage || result.goods_image) {
@@ -584,10 +583,114 @@ Page({
     }).then(function () {
       wx.showToast({ title: '评价成功 🌟', icon: 'success' });
       that.setData({ showReviewModal: false });
-      that.loadReviews(that.data.carId);
+      // 重新加载详情（含评价数据预处理）
+      that.loadCarDetail(that.data.carId);
     }).catch(function (err) {
       wx.showToast({ title: err.message || '评价失败', icon: 'none' });
     });
+  },
+
+  /* ========== 生成海报 ========== */
+
+  onGeneratePoster: function () {
+    var that = this;
+    var car = this.data.car;
+    var token = wx.getStorageSync('token');
+    if (!token) {
+      wx.navigateTo({ url: '/pages/auth/auth' });
+      return;
+    }
+
+    wx.showLoading({ title: '生成海报中...' });
+
+    // 创建离屏 Canvas
+    var query = wx.createSelectorQuery();
+    query.select('#posterCanvas').fields({ node: true, size: true }).exec(function (res) {
+      if (!res[0]) {
+        wx.hideLoading();
+        wx.showToast({ title: 'Canvas 初始化失败', icon: 'none' });
+        return;
+      }
+
+      var canvas = res[0].node;
+      var ctx = canvas.getContext('2d');
+      var w = canvas.width;
+      var h = canvas.height;
+
+      // 绘制背景
+      var gradient = ctx.createLinearGradient(0, 0, w, h);
+      gradient.addColorStop(0, '#FF6B9D');
+      gradient.addColorStop(0.5, '#A78BFA');
+      gradient.addColorStop(1, '#60A5FA');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, w, h);
+
+      // 白色圆角卡片
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+      roundRect(ctx, 20, 120, 335, 380, 20);
+      ctx.fill();
+
+      // 标题
+      ctx.fillStyle = '#1F2937';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      wrapText(ctx, car.title || '拼车', 187, 180, 280, 30);
+
+      // 商品名
+      ctx.fillStyle = '#6B7280';
+      ctx.font = '16px sans-serif';
+      ctx.fillText(car.goodsName || '', 187, 240);
+
+      // 价格
+      ctx.fillStyle = '#FF6B9D';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('¥' + (car.pricePer || 0) + '/人', 187, 310);
+
+      // 进度
+      ctx.fillStyle = '#A78BFA';
+      ctx.font = '18px sans-serif';
+      ctx.fillText('进度: ' + (car.currentCount || 0) + '/' + (car.totalCount || 0) + '人', 187, 360);
+
+      // 状态
+      ctx.fillStyle = '#34D399';
+      ctx.font = '16px sans-serif';
+      var statusInfo = getStatusInfo(car.status);
+      var statusText = statusInfo.icon + ' ' + statusInfo.text;
+      ctx.fillText(statusText, 187, 400);
+
+      // 底部品牌
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = '16px sans-serif';
+      ctx.fillText('拼车协作平台 · 扫码参与', 187, 565);
+
+      // Canvas 2D 绘制是即时的，直接导出
+      wx.canvasToTempFilePath({
+          canvas: canvas,
+          success: function (fileRes) {
+            wx.hideLoading();
+            wx.showActionSheet({
+              itemList: ['保存到相册'],
+              success: function (actRes) {
+                if (actRes.tapIndex === 0) {
+                  wx.saveImageToPhotosAlbum({
+                    filePath: fileRes.tempFilePath,
+                    success: function () {
+                      wx.showToast({ title: '已保存到相册 📸', icon: 'success' });
+                    },
+                    fail: function () {
+                      wx.showToast({ title: '保存失败，请授权相册权限', icon: 'none' });
+                    }
+                  });
+                }
+              }
+            });
+          },
+          fail: function () {
+            wx.hideLoading();
+            wx.showToast({ title: '生成失败', icon: 'none' });
+          }
+        });
+      });
   },
 
   onShareAppMessage: function () {
@@ -597,3 +700,36 @@ Page({
     };
   }
 });
+
+// 海报辅助函数
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  if (!text) return;
+  var chars = text.split('');
+  var line = '';
+  var lines = [];
+  for (var i = 0; i < chars.length; i++) {
+    line += chars[i];
+    if (ctx.measureText(line).width > maxWidth && line.length > 1) {
+      lines.push(line.substring(0, line.length - 1));
+      line = chars[i];
+    }
+  }
+  if (line) lines.push(line);
+  for (var j = 0; j < Math.min(lines.length, 2); j++) {
+    ctx.fillText(lines[j], x, y + j * lineHeight);
+  }
+}

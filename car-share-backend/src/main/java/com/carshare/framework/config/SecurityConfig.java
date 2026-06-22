@@ -12,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.filter.CorsFilter;
 import com.carshare.framework.config.properties.PermitAllUrlProperties;
 import com.carshare.framework.security.filter.JwtAuthenticationTokenFilter;
@@ -113,9 +112,8 @@ public class SecurityConfig
             .logout(logout -> logout.logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler))
             // 添加JWT filter
             .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-            // 添加CORS filter
+            // 添加CORS filter（只添加一次，避免重复注册）
             .addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class)
-            .addFilterBefore(corsFilter, LogoutFilter.class)
             .build();
     }
 

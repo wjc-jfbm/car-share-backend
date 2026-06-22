@@ -2,6 +2,7 @@ package com.carshare.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.Car;
 import com.carshare.entity.CarMember;
 import com.carshare.entity.Logistics;
@@ -48,7 +49,7 @@ public class LogisticsServiceImpl implements LogisticsService {
         if (car == null || !car.getUserId().equals(userId)) {
             return null;
         }
-        if (car.getStatus() != 2) {
+        if (car.getStatus() != CarStatus.SETTLED.getCode()) {
             return null;
         }
         logistics.setStatus(1);
@@ -56,7 +57,7 @@ public class LogisticsServiceImpl implements LogisticsService {
         logistics.setUpdatedAt(java.time.LocalDateTime.now());
         logisticsMapper.insert(logistics);
 
-        car.setStatus(3);
+        car.setStatus(CarStatus.SHIPPED.getCode());
         carMapper.updateById(car);
 
         notificationService.sendToCarMembers(
@@ -225,8 +226,8 @@ public class LogisticsServiceImpl implements LogisticsService {
         logistics.setUpdatedAt(java.time.LocalDateTime.now());
         logisticsMapper.insert(logistics);
 
-        if (car.getStatus() != null && car.getStatus() == 2) {
-            car.setStatus(3);
+        if (car.getStatus() != null && car.getStatus() == CarStatus.SETTLED.getCode()) {
+            car.setStatus(CarStatus.SHIPPED.getCode());
             carMapper.updateById(car);
         }
 
@@ -302,7 +303,7 @@ public class LogisticsServiceImpl implements LogisticsService {
         }
 
         if (car != null) {
-            car.setStatus(4);
+            car.setStatus(CarStatus.COMPLETED.getCode());
             car.setCompletedAt(java.time.LocalDateTime.now());
             carMapper.updateById(car);
         }

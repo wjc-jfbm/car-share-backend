@@ -1,7 +1,10 @@
 <view class="container">
-  <view class="header" wx:if="{{unreadCount > 0}}">
-    <text class="unread-info">{{unreadCount}}条未读</text>
-    <text class="mark-all" bindtap="onMarkAllRead">全部已读</text>
+  <view class="header">
+    <view class="header-left">
+      <text class="header-icon">🔔</text>
+      <text class="unread-info">{{unreadCount > 0 ? unreadCount + '条未读' : '消息通知'}}</text>
+    </view>
+    <text class="mark-all" bindtap="onMarkAllRead" wx:if="{{unreadCount > 0}}">全部已读</text>
   </view>
 
   <view class="notification-list" wx:if="{{notifications.length > 0}}">

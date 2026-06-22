@@ -30,18 +30,9 @@ public class ResourceConfig implements WebMvcConfigurer {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
-                        "/api/user/login",
-                        "/api/user/phone-login",
-                        "/api/user/wx-phone-login",
-                        "/api/user/register",
-                        "/api/file/**",
-                        "/api/health",
-                        "/api/statistics/platform",
-                        "/api/car/list",
-                        "/api/car/detail",
-                        "/api/goods/list",
-                        "/api/goods/all",
-                        "/api/goods/detail"
+                        JwtExcludedPaths.EXCLUDED_PATHS.stream()
+                                .map(p -> p.endsWith("/") ? p + "**" : p + "/**")
+                                .toArray(String[]::new)
                 );
     }
 }

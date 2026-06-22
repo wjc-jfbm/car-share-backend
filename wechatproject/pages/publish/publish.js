@@ -30,11 +30,93 @@ Page({
     templateList: [],
     saveAsTemplate: false,
     templateName: '',
-    templateId: ''  // 编辑模板时使用
+    templateId: '',  // 编辑模板时使用
+    editId: ''       // 编辑拼车时使用
   },
 
-  onLoad: function () {
+  onLoad: function (options) {
     this.loadTemplates();
+
+    // 编辑模式：加载已有拼车数据
+    if (options && options.editId) {
+      this.setData({ editId: options.editId, templateId: options.editId });
+      this.loadCarForEdit(options.editId);
+      return;
+    }
+
+    // 恢复草稿
+    var draft = wx.getStorageSync('publishDraft');
+    if (draft && draft.title && draft._saveTime) {
+      var that = this;
+      wx.showModal({
+        title: '恢复草稿',
+        content: '检测到上次未发布的草稿（' + draft._saveTime + '），是否恢复？',
+        success: function (res) {
+          if (res.confirm) {
+            delete draft._saveTime;
+            that.setData({ formData: draft });
+            that.calculatePrice();
+          } else {
+            wx.removeStorageSync('publishDraft');
+          }
+        }
+      });
+    }
+  },
+
+  // 自动保存草稿
+  _autoSaveDraft: function () {
+    var data = this.data.formData;
+    if (data.title || data.goodsName) {
+      data._saveTime = new Date().toLocaleString('zh-CN');
+      wx.setStorageSync('publishDraft', data);
+    }
+  },
+
+  /* ========== 编辑功能 ========== */
+
+  loadCarForEdit: function (carId) {
+    var that = this;
+    request({
+      url: '/car/detail/' + carId,
+      method: 'GET',
+      loading: true,
+      showError: false
+    }).then(function (result) {
+      if (!result) {
+        wx.showToast({ title: '拼车不存在', icon: 'none' });
+        return;
+      }
+      var versions = '';
+      var cards = '';
+      if (result.goods) {
+        try {
+          var v = typeof result.goods.versions === 'string' ? JSON.parse(result.goods.versions) : (result.goods.versions || []);
+          versions = Array.isArray(v) ? v.join('，') : '';
+        } catch (e) {}
+        try {
+          var c = typeof result.goods.cards === 'string' ? JSON.parse(result.goods.cards) : (result.goods.cards || []);
+          cards = Array.isArray(c) ? c.join('，') : '';
+        } catch (e) {}
+      }
+      that.setData({
+        formData: {
+          title: result.title || '',
+          goodsName: result.goodsName || result.goods_name || '',
+          goodsImage: result.goodsImage || result.goods_image || '',
+          description: result.description || '',
+          versions: versions,
+          cards: cards,
+          priceTotal: result.priceTotal ? String(result.priceTotal) : '',
+          totalCount: result.totalCount ? String(result.totalCount) : '',
+          distributionType: result.distributionType || 0,
+          deadline: result.deadline ? result.deadline.substring(0, 10) : ''
+        },
+        calculatedPrice: result.pricePer || '0.00'
+      });
+    }).catch(function () {
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    });
   },
 
   /* ========== 模板功能 ========== */
@@ -108,14 +190,31 @@ Page({
 
   /* ========== 表单操作 ========== */
 
+  onTitleInput: function (e) {
+    this.setData({ 'formData.title': e.detail.value });
+    this._autoSaveDraft();
+  },
+
+  onGoodsNameInput: function (e) {
+    this.setData({ 'formData.goodsName': e.detail.value });
+    this._autoSaveDraft();
+  },
+
+  onDescInput: function (e) {
+    this.setData({ 'formData.description': e.detail.value });
+    this._autoSaveDraft();
+  },
+
   onPriceInput: function (e) {
     this.setData({ 'formData.priceTotal': e.detail.value });
     this.calculatePrice();
+    this._autoSaveDraft();
   },
 
   onCountInput: function (e) {
     this.setData({ 'formData.totalCount': e.detail.value });
     this.calculatePrice();
+    this._autoSaveDraft();
   },
 
   calculatePrice: function () {
@@ -236,9 +335,13 @@ Page({
     var that = this;
     this.setData({ submitting: true });
 
+    // 编辑模式走 PUT，否则 POST
+    var method = that.data.editId ? 'PUT' : 'POST';
+    var url = that.data.editId ? '/car/' + that.data.editId : '/car';
+
     request({
-      url: '/car',
-      method: 'POST',
+      url: url,
+      method: method,
       data: submitData
     }).then(function (carResult) {
       // 保存为模板
@@ -264,6 +367,8 @@ Page({
         }).catch(function () {});
       }
 
+      // 清除草稿
+      wx.removeStorageSync('publishDraft');
       that.setData({ submitting: false });
       wx.showToast({ title: '发布成功', icon: 'success' });
       setTimeout(function () {

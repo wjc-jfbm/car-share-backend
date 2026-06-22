@@ -771,3 +771,39 @@
 .review-textarea::placeholder {
   color: var(--text-tertiary);
 }
+
+/* ====== 海报分享 ====== */
+.poster-section {
+  margin-top: 20rpx;
+}
+
+.poster-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.poster-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 28rpx;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 2rpx solid var(--border);
+}
+
+.poster-btn:active {
+  transform: scale(0.96);
+}
+
+.poster-btn-icon {
+  font-size: 44rpx;
+}
+
+.poster-btn-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+}

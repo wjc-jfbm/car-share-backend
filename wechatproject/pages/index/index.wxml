@@ -156,40 +156,55 @@
         >
           <text>🔵 成团中</text>
         </view>
-        <view
-          class="filter-chip {{currentFilter === 'new' ? 'chip-active' : ''}}"
-          bindtap="onFilterChange"
-          data-filter="new"
-        >
-          <text>⏰ 最新</text>
-        </view>
-        <view
-          class="filter-chip {{currentFilter === 'hot' ? 'chip-active' : ''}}"
-          bindtap="onFilterChange"
-          data-filter="hot"
-        >
-          <text>🔥 热门</text>
-        </view>
       </scroll-view>
+      <view class="filter-sort-btn" bindtap="onToggleFilter">
+        <text>{{showFilterPanel ? '收起' : '筛选'}}</text>
+        <text class="filter-dot" wx:if="{{sortBy !== 'time' || priceMin || priceMax}}">●</text>
+      </view>
+    </view>
+
+    <!-- 筛选排序面板 -->
+    <view class="filter-panel" wx:if="{{showFilterPanel}}">
+      <view class="filter-section">
+        <text class="filter-label">排序方式</text>
+        <view class="sort-options">
+          <view class="sort-chip {{sortBy === 'time' ? 'active' : ''}}" bindtap="onSortChange" data-sort="time">⏰ 最新</view>
+          <view class="sort-chip {{sortBy === 'price' ? 'active' : ''}}" bindtap="onSortChange" data-sort="price">💰 最便宜</view>
+          <view class="sort-chip {{sortBy === 'hot' ? 'active' : ''}}" bindtap="onSortChange" data-sort="hot">🔥 最热门</view>
+          <view class="sort-chip {{sortBy === 'deadline' ? 'active' : ''}}" bindtap="onSortChange" data-sort="deadline">⏳ 即将截止</view>
+        </view>
+      </view>
+      <view class="filter-section">
+        <text class="filter-label">价格区间</text>
+        <view class="price-input-row">
+          <input class="price-input" type="digit" placeholder="最低价" value="{{priceMin}}" bindinput="onPriceMinInput" />
+          <text class="price-sep">—</text>
+          <input class="price-input" type="digit" placeholder="最高价" value="{{priceMax}}" bindinput="onPriceMaxInput" />
+          <view class="price-btn" bindtap="onPriceFilter">确定</view>
+        </view>
+      </view>
+      <view class="filter-actions">
+        <text class="filter-reset" bindtap="onClearFilter">重置</text>
+      </view>
     </view>
 
     <!-- 骨架屏加载 -->
     <view class="skeleton-section" wx:if="{{loading && carList.length === 0 && !loadError}}">
       <view class="skeleton-banner"></view>
       <view class="skeleton-actions">
-        <view class="skeleton-action-item" wx:for="{{4}}" wx:key="index">
+        <view class="skeleton-action-item" wx:for="{{[1,2,3,4]}}" wx:key="*this">
           <view class="skeleton skeleton-circle"></view>
           <view class="skeleton skeleton-text skeleton-text-short"></view>
         </view>
       </view>
       <view class="skeleton-stats">
-        <view class="skeleton skeleton-stat" wx:for="{{4}}" wx:key="index"></view>
+        <view class="skeleton skeleton-stat" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
       </view>
       <view class="skeleton-filter">
-        <view class="skeleton skeleton-chip" wx:for="{{4}}" wx:key="index"></view>
+        <view class="skeleton skeleton-chip" wx:for="{{[1,2,3,4]}}" wx:key="*this"></view>
       </view>
       <view class="skeleton-card-list">
-        <view class="skeleton-card" wx:for="{{3}}" wx:key="index">
+        <view class="skeleton-card" wx:for="{{[1,2,3]}}" wx:key="*this">
           <view class="skeleton-card-header">
             <view class="skeleton skeleton-avatar"></view>
             <view class="skeleton-card-user">
@@ -229,6 +244,7 @@
       <view
         class="car-card"
         wx:for="{{carList}}"
+        wx:for-index="idx"
         wx:key="id"
         bindtap="goToDetail"
         data-id="{{item.id}}"
@@ -236,7 +252,7 @@
       >
         <view class="card-header">
           <view class="card-user">
-            <view class="user-avatar" style="background: {{avatarColors[item.index % 6]}}">
+            <view class="user-avatar" style="background: {{avatarColors[idx % 6]}}">
               <text>{{item.userNickname ? item.userNickname[0] : '?'}}</text>
             </view>
             <view class="user-info">
@@ -245,7 +261,7 @@
             </view>
           </view>
           <view class="status-badge status-{{item.status}}">
-            <text>{{item.status === 0 ? '招募中' : item.status === 1 ? '已截止' : item.status === 2 ? '已完成' : '已取消'}}</text>
+            <text>{{item._statusText || '招募中'}}</text>
           </view>
         </view>
 
@@ -277,9 +293,14 @@
             <text class="price-amount">{{item.pricePer || 0}}</text>
             <text class="price-unit">/人</text>
           </view>
-          <view class="card-action">
-            <text class="action-text">{{item.status === 0 ? '立即参与' : '查看详情'}}</text>
-            <text class="action-arrow">→</text>
+          <view class="card-footer-right">
+            <view class="card-fav {{item._fav ? 'fav-active' : ''}}" catchtap="toggleFav" data-id="{{item.id}}" data-idx="{{idx}}">
+              <text>{{item._fav ? '❤️' : '🤍'}}</text>
+            </view>
+            <view class="card-action">
+              <text class="action-text">{{item.status === 0 ? '立即参与' : '查看详情'}}</text>
+              <text class="action-arrow">→</text>
+            </view>
           </view>
         </view>
       </view>

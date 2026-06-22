@@ -31,19 +31,10 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        if (requestURI.startsWith("/api/user/login") ||
-            requestURI.startsWith("/api/user/phone-login") ||
-            requestURI.startsWith("/api/user/wx-phone-login") ||
-            requestURI.startsWith("/api/user/register") ||
-            requestURI.startsWith("/api/file/") ||
-            requestURI.startsWith("/api/health") ||
-            requestURI.startsWith("/api/statistics/platform") ||
-            requestURI.startsWith("/api/car/list") ||
-            requestURI.startsWith("/api/car/detail") ||
-            requestURI.startsWith("/api/goods/list") ||
-            requestURI.startsWith("/api/goods/all") ||
-            requestURI.startsWith("/api/goods/detail")) {
-            return true;
+        for (String path : JwtExcludedPaths.EXCLUDED_PATHS) {
+            if (requestURI.startsWith(path)) {
+                return true;
+            }
         }
 
         response.setStatus(200);

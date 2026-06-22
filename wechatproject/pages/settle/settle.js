@@ -72,7 +72,7 @@ Page({
 
       var carStatus = parseInt(car.status);
       if (isNaN(carStatus)) carStatus = 0;
-      var carSettled = (carStatus === 2 || car.status === '2' || car.status == 2);
+      var carSettled = (carStatus === 2);
 
       var members = result.members || [];
 
@@ -127,7 +127,9 @@ Page({
           car: car,
           isOwner: isOwner,
           evidenceList: evidenceList,
-          carSettled: carSettled
+          carSettled: carSettled,
+          evidenceRawList: that.data.evidenceRawList,
+          evidenceUrlList: that.data.evidenceUrlList
         });
       });
     } catch (err) {
@@ -218,6 +220,7 @@ Page({
         for (var i = 0; i < members.length; i++) {
           if (String(members[i].userId) === String(userId)) {
             myMemberId = members[i].id;
+            that.setData({ myMemberId: myMemberId });
             break;
           }
         }

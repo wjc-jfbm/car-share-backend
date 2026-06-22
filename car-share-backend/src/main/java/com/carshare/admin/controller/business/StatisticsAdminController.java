@@ -3,6 +3,7 @@ package com.carshare.admin.controller.business;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.carshare.common.core.controller.BaseController;
 import com.carshare.common.core.domain.AjaxResult;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.Car;
 import com.carshare.entity.CarOrder;
 import com.carshare.entity.Goods;
@@ -58,8 +59,8 @@ public class StatisticsAdminController extends BaseController {
 
         // 拼车统计
         long carTotal = carMapper.selectCount(new QueryWrapper<>());
-        long carActive = carMapper.selectCount(new QueryWrapper<Car>().eq("status", 1));
-        long carCompleted = carMapper.selectCount(new QueryWrapper<Car>().eq("status", 3));
+        long carActive = carMapper.selectCount(new QueryWrapper<Car>().eq("status", CarStatus.RECRUITING.getCode()));
+        long carCompleted = carMapper.selectCount(new QueryWrapper<Car>().eq("status", CarStatus.COMPLETED.getCode()));
         data.put("carTotal", carTotal);
         data.put("carActive", carActive);
         data.put("carCompleted", carCompleted);
@@ -146,9 +147,10 @@ public class StatisticsAdminController extends BaseController {
     public AjaxResult getCarStatusDist() {
         List<Map<String, Object>> result = new ArrayList<>();
 
-        String[] statusNames = {"招募中", "进行中", "已截止", "已完成"};
+        String[] statusNames = {CarStatus.RECRUITING.getLabel(), CarStatus.CLOSED.getLabel(), CarStatus.SETTLED.getLabel(), CarStatus.COMPLETED.getLabel()};
+        int[] statusValues = {CarStatus.RECRUITING.getCode(), CarStatus.CLOSED.getCode(), CarStatus.SETTLED.getCode(), CarStatus.COMPLETED.getCode()};
         for (int i = 0; i < statusNames.length; i++) {
-            long count = carMapper.selectCount(new QueryWrapper<Car>().eq("status", i + 1));
+            long count = carMapper.selectCount(new QueryWrapper<Car>().eq("status", statusValues[i]));
             Map<String, Object> item = new HashMap<>();
             item.put("name", statusNames[i]);
             item.put("value", count);

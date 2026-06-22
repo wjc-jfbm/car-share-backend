@@ -1,4 +1,5 @@
 var { request, getFullImageUrl, loadImage } = require('../../utils/request');
+var { getStatusInfo } = require('../../utils/status');
 
 Page({
   data: {
@@ -16,10 +17,14 @@ Page({
     greeting: '',
     unreadCount: 0,
     platformStats: null,
-    // 新增状态
     loadError: false,
     errorMsg: '',
     isEmpty: false,
+    // 筛选相关
+    sortBy: 'time',          // time / price / hot / deadline
+    priceMin: '',
+    priceMax: '',
+    showFilterPanel: false,
     avatarColors: [
       'linear-gradient(135deg, #667eea, #764ba2)',
       'linear-gradient(135deg, #f093fb, #f5576c)',
@@ -32,6 +37,18 @@ Page({
 
   // 防重复加载标记
   _loadingLock: false,
+  _isOffline: false,
+
+  onNetworkChange: function (isConnected) {
+    if (isConnected && this._isOffline) {
+      this._isOffline = false;
+      wx.showToast({ title: '网络已恢复', icon: 'success', duration: 2000 });
+      this.onPullDownRefresh();
+    } else if (!isConnected) {
+      this._isOffline = true;
+      wx.showToast({ title: '⚠️ 网络已断开', icon: 'none', duration: 3000 });
+    }
+  },
 
   onLoad: function () {
     this.setGreeting();
@@ -148,13 +165,22 @@ Page({
     var params = {
       page: this.data.page,
       pageSize: this.data.pageSize,
-      keyword: this.data.keyword
+      keyword: this.data.keyword,
+      sortBy: this.data.sortBy
     };
 
     if (this.data.currentFilter === 'recruiting') {
-      params.status = 0;
+      params.status = 0; // RECRUITING
     } else if (this.data.currentFilter === 'grouping') {
-      params.status = 2;
+      params.status = 1; // CLOSED (已满员/成团中)
+    }
+
+    // 价格筛选
+    if (this.data.priceMin) {
+      params.priceMin = parseFloat(this.data.priceMin);
+    }
+    if (this.data.priceMax) {
+      params.priceMax = parseFloat(this.data.priceMax);
     }
 
     return request({
@@ -174,10 +200,15 @@ Page({
 
       // 处理列表数据
       for (var i = 0; i < newList.length; i++) {
+        var statusInfo = getStatusInfo(newList[i].status);
+        newList[i]._statusText = statusInfo.text;
         newList[i].timeLabel = that.formatTime(newList[i].createdAt || newList[i].created_at);
         newList[i]._successRate = that.calcSuccessRate(newList[i]);
-        newList[i]._imageLoaded = false;
+        newList[i]._fav = false;  // 默认未收藏
       }
+
+      // 检查收藏状态（登录用户）
+      that.markFavorites(newList);
 
       // 异步加载图片（不阻塞渲染）
       that.loadListImages(newList);
@@ -202,6 +233,33 @@ Page({
         isEmpty: that.data.carList.length === 0 && that.data.page === 1
       });
     });
+  },
+
+  // 标记收藏状态
+  markFavorites: function (list) {
+    var that = this;
+    var token = wx.getStorageSync('token');
+    if (!token || !list.length) return;
+
+    request({
+      url: '/favorite/my',
+      method: 'GET',
+      loading: false,
+      showError: false
+    }).then(function (result) {
+      var favIds = {};
+      if (result && result.list) {
+        for (var i = 0; i < result.list.length; i++) {
+          favIds[result.list[i].carId] = true;
+        }
+      }
+      for (var i = 0; i < list.length; i++) {
+        if (favIds[list[i].id]) {
+          list[i]._fav = true;
+        }
+      }
+      that.setData({ carList: that.data.carList });
+    }).catch(function () {});
   },
 
   // 异步加载图片列表（失败不阻塞）
@@ -280,6 +338,53 @@ Page({
     this.loadCarList();
   },
 
+  /* ========== 筛选排序 ========== */
+
+  onToggleFilter: function () {
+    this.setData({ showFilterPanel: !this.data.showFilterPanel });
+  },
+
+  onSortChange: function (e) {
+    var sortBy = e.currentTarget.dataset.sort;
+    if (sortBy === this.data.sortBy) return;
+    this.setData({
+      sortBy: sortBy,
+      page: 1,
+      carList: [],
+      showFilterPanel: false
+    });
+    this.loadCarList();
+  },
+
+  onPriceMinInput: function (e) {
+    this.setData({ priceMin: e.detail.value });
+  },
+
+  onPriceMaxInput: function (e) {
+    this.setData({ priceMax: e.detail.value });
+  },
+
+  onPriceFilter: function () {
+    this.setData({
+      page: 1,
+      carList: [],
+      showFilterPanel: false
+    });
+    this.loadCarList();
+  },
+
+  onClearFilter: function () {
+    this.setData({
+      priceMin: '',
+      priceMax: '',
+      sortBy: 'time',
+      page: 1,
+      carList: [],
+      showFilterPanel: false
+    });
+    this.loadCarList();
+  },
+
   onFilterChange: function (e) {
     var filter = e.currentTarget.dataset.filter;
     if (filter === this.data.currentFilter) return;
@@ -299,6 +404,32 @@ Page({
     if (!this.data.hasMore || this.data.loading || this._loadingLock) return;
     this.setData({ page: this.data.page + 1 });
     this.loadCarList();
+  },
+
+  // 收藏切换
+  toggleFav: function (e) {
+    var that = this;
+    var carId = e.currentTarget.dataset.id;
+    var idx = e.currentTarget.dataset.idx;
+    var token = wx.getStorageSync('token');
+    if (!token) {
+      wx.navigateTo({ url: '/pages/auth/auth' });
+      return;
+    }
+
+    var carList = this.data.carList.slice();
+    var isFav = carList[idx]._fav;
+
+    request({
+      url: '/favorite/' + carId,
+      method: isFav ? 'DELETE' : 'POST',
+      loading: false,
+      showError: false
+    }).then(function () {
+      carList[idx]._fav = !isFav;
+      that.setData({ carList: carList });
+      wx.showToast({ title: isFav ? '已取消收藏' : '收藏成功', icon: 'success' });
+    }).catch(function () {});
   },
 
   goToDetail: function (e) {

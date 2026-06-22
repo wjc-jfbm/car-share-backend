@@ -2,6 +2,7 @@ package com.carshare.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.carshare.common.enums.CarStatus;
 import com.carshare.entity.*;
 import com.carshare.mapper.*;
 import com.carshare.service.MatchService;
@@ -36,14 +37,40 @@ public class MatchServiceImpl implements MatchService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    // ========== 偏好匹配权重 ==========
     private static final double WEIGHT_MEMBER = 0.4;
     private static final double WEIGHT_VERSION = 0.3;
     private static final double WEIGHT_CARD = 0.3;
 
+    // ========== 成团率预测权重 ==========
     private static final double SUCCESS_WEIGHT_HISTORY = 0.3;
     private static final double SUCCESS_WEIGHT_PARTICIPATION = 0.3;
     private static final double SUCCESS_WEIGHT_PRICE = 0.2;
     private static final double SUCCESS_WEIGHT_CREDIT = 0.2;
+
+    // ========== 智能推荐权重 ==========
+    private static final double REC_WEIGHT_PREF = 0.4;
+    private static final double REC_WEIGHT_CREDIT = 0.2;
+    private static final double REC_WEIGHT_PRICE = 0.2;
+    private static final double REC_WEIGHT_HOT = 0.1;
+    private static final double REC_WEIGHT_THRESHOLD = 0.1;
+
+    // ========== 信用等级阈值 ==========
+    private static final int CREDIT_LEVEL_5 = 90;
+    private static final int CREDIT_LEVEL_4 = 75;
+    private static final int CREDIT_LEVEL_3 = 60;
+    private static final int CREDIT_LEVEL_2 = 40;
+
+    // ========== 价格竞争力阈值 ==========
+    private static final double PRICE_RATIO_EXCELLENT = 0.5;
+    private static final double PRICE_RATIO_GOOD = 0.7;
+    private static final double PRICE_RATIO_FAIR = 0.9;
+
+    // ========== 默认值 ==========
+    private static final double DEFAULT_MID_SCORE = 0.5;
+    private static final double DEFAULT_CREDIT_SCORE = 60;
+    private static final int DEFAULT_HISTORY_RATE = 50;
+    private static final int REFERENCE_AVG_PRICE = 50;
 
     @Override
     public BigDecimal calculateMatchScore(Long userId, Long carId) {
@@ -175,7 +202,7 @@ public class MatchServiceImpl implements MatchService {
 
     private double calculateHistoryRate(Long userId) {
         LambdaQueryWrapper<Car> totalWrapper = new LambdaQueryWrapper<>();
-        totalWrapper.eq(Car::getUserId, userId).in(Car::getStatus, 1, 2);
+        totalWrapper.eq(Car::getUserId, userId).in(Car::getStatus, CarStatus.CLOSED.getCode(), CarStatus.SETTLED.getCode());
         long completedCount = carMapper.selectCount(totalWrapper);
 
         LambdaQueryWrapper<Car> allWrapper = new LambdaQueryWrapper<>();
@@ -194,16 +221,16 @@ public class MatchServiceImpl implements MatchService {
 
     private double calculatePriceCompetitiveness(Car car) {
         if (car.getGoodsId() == null || car.getPricePer() == null) {
-            return 0.5;
+            return DEFAULT_MID_SCORE;
         }
         Goods goods = goodsMapper.selectById(car.getGoodsId());
         if (goods == null || goods.getMarketPrice() == null || goods.getMarketPrice().compareTo(BigDecimal.ZERO) == 0) {
-            return 0.5;
+            return DEFAULT_MID_SCORE;
         }
         double ratio = car.getPricePer().doubleValue() / goods.getMarketPrice().doubleValue();
-        if (ratio <= 0.5) return 1.0;
-        if (ratio <= 0.7) return 0.8;
-        if (ratio <= 0.9) return 0.6;
+        if (ratio <= PRICE_RATIO_EXCELLENT) return 1.0;
+        if (ratio <= PRICE_RATIO_GOOD) return 0.8;
+        if (ratio <= PRICE_RATIO_FAIR) return 0.6;
         if (ratio <= 1.0) return 0.4;
         return 0.2;
     }
@@ -228,7 +255,7 @@ public class MatchServiceImpl implements MatchService {
         Set<Long> joinedCarIds = myMembers.stream().map(CarMember::getCarId).collect(Collectors.toSet());
 
         LambdaQueryWrapper<Car> carWrapper = new LambdaQueryWrapper<>();
-        carWrapper.eq(Car::getStatus, 0);
+        carWrapper.eq(Car::getStatus, CarStatus.RECRUITING.getCode());
         List<Car> allCars = carMapper.selectList(carWrapper);
 
         List<Map<String, Object>> scoredCars = new ArrayList<>();
