@@ -63,7 +63,7 @@
     </select>
 
     <update id="autoCloseExpiredCars">
-        UPDATE car SET status = 5, closed_at = NOW()
+        UPDATE car SET status = 1, closed_at = NOW()
         WHERE status = 0 AND deadline IS NOT NULL AND deadline <![CDATA[ < ]]> #{now}
     </update>
 

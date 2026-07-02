@@ -288,7 +288,7 @@ public class SettleServiceImpl implements SettleService {
         result.put("status", car.getStatus());
         result.put("goodsName", car.getGoodsName());
 
-        if (car.getStatus() >= 3) {
+        if (car.getStatus() >= CarStatus.SHIPPED.getCode()) {
             LambdaQueryWrapper<Logistics> logiWrapper = new LambdaQueryWrapper<>();
             logiWrapper.eq(Logistics::getCarId, carId).orderByDesc(Logistics::getCreatedAt);
             List<Logistics> logistics = logisticsMapper.selectList(logiWrapper);

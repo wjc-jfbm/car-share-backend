@@ -32,7 +32,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         String requestURI = request.getRequestURI();
         for (String path : JwtExcludedPaths.EXCLUDED_PATHS) {
-            if (requestURI.startsWith(path)) {
+            if (requestURI.equals(path) || requestURI.startsWith(path + "/")) {
                 return true;
             }
         }

@@ -14,7 +14,7 @@ public final class JwtExcludedPaths {
             "/api/user/phone-login",
             "/api/user/wx-phone-login",
             "/api/user/register",
-            "/api/file/",
+            "/api/file",
             "/api/health",
             "/api/statistics/platform",
             "/api/car/list",

@@ -529,25 +529,6 @@ public class CarServiceImpl implements CarService {
     }
 
     /**
-     * 定时任务：每5分钟自动关闭已过期的招募中拼车
-     */
-    @Scheduled(fixedRate = 300000)
-    @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "carList", allEntries = true),
-            @CacheEvict(value = "carDetail", allEntries = true)
-    })
-    public void autoCloseExpiredCarsTask() {
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            carMapper.autoCloseExpiredCars(now);
-            log.info("自动关闭过期拼车检查完成");
-        } catch (Exception e) {
-            log.error("自动关闭过期拼车时出错", e);
-        }
-    }
-
-    /**
      * 定时任务：每小时检查并发送到期/付款提醒
      * 1. 截止时间即将到达（24小时内）→ 提醒车主
      * 2. 拼车已满员但成员未付款 → 提醒未付款成员

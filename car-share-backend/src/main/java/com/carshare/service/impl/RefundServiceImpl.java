@@ -88,7 +88,7 @@ public class RefundServiceImpl implements RefundService {
         refund.setUpdatedAt(LocalDateTime.now());
         refundMapper.updateById(refund);
 
-        String resultText = status == 2 ? "已通过，退款处理中" : "已被驳回";
+        String resultText = status == 1 ? "已通过，退款处理中" : "已被驳回";
         notificationService.sendNotification(
             refund.getUserId(), car.getId(), "退款审核结果",
             "您在拼车「" + car.getTitle() + "」中的退款申请" + resultText, 6);
