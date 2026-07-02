@@ -25,6 +25,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private WeChatService weChatService;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     public Map<String, Object> accountLogin(String username, String password) {
         if (username == null || username.trim().isEmpty()) {
@@ -51,7 +54,7 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.updateById(user);
 
-        String token = JwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -90,7 +93,7 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.updateById(user);
 
-        String token = JwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -136,7 +139,7 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.updateById(user);
 
-        String token = JwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
@@ -198,7 +201,7 @@ public class UserServiceImpl implements UserService {
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.updateById(user);
 
-        String token = JwtUtil.generateToken(user.getId());
+        String token = jwtUtil.generateToken(user.getId());
 
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);

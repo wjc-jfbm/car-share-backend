@@ -41,7 +41,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         long createdCount = carMapper.selectCount(createdWrapper);
 
         LambdaQueryWrapper<Car> completedCreatedWrapper = new LambdaQueryWrapper<>();
-        completedCreatedWrapper.eq(Car::getUserId, userId).in(Car::getStatus, CarStatus.SETTLED.getCode());
+        completedCreatedWrapper.eq(Car::getUserId, userId)
+                .in(Car::getStatus, CarStatus.SETTLED.getCode(), CarStatus.SHIPPED.getCode(), CarStatus.COMPLETED.getCode());
         long completedCreatedCount = carMapper.selectCount(completedCreatedWrapper);
 
         LambdaQueryWrapper<CarMember> joinedWrapper = new LambdaQueryWrapper<>();
@@ -115,7 +116,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         long activeCars = carMapper.selectCount(activeWrapper);
 
         LambdaQueryWrapper<Car> completedWrapper = new LambdaQueryWrapper<>();
-        completedWrapper.eq(Car::getStatus, CarStatus.SETTLED.getCode());
+        completedWrapper.in(Car::getStatus, CarStatus.SETTLED.getCode(), CarStatus.SHIPPED.getCode(), CarStatus.COMPLETED.getCode());
         long completedCars = carMapper.selectCount(completedWrapper);
 
         long totalMembers = carMemberMapper.selectCount(new LambdaQueryWrapper<>());

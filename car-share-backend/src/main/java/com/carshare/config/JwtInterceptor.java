@@ -5,11 +5,15 @@ import com.carshare.common.Result;
 import com.carshare.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
 public class JwtInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -21,8 +25,8 @@ public class JwtInterceptor implements HandlerInterceptor {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
-                if (JwtUtil.validateToken(token)) {
-                    Long userId = JwtUtil.getUserIdFromToken(token);
+                if (jwtUtil.validateToken(token)) {
+                    Long userId = jwtUtil.getUserIdFromToken(token);
                     request.setAttribute("userId", userId);
                     return true;
                 }

@@ -3,15 +3,28 @@ package com.carshare.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+@Component
 public class JwtUtil {
 
-    private static final String SECRET = "car_share_jwt_secret_key_2024_very_long_string_for_security";
-    private static final long EXPIRATION = 604800000L;
+    private static String SECRET;
+    private static long EXPIRATION;
 
-    public static String generateToken(Long userId) {
+    @Value("${jwt.secret:car_share_jwt_secret_key_2024_very_long_string_for_security}")
+    public void setSecret(String secret) {
+        JwtUtil.SECRET = secret;
+    }
+
+    @Value("${jwt.expiration:604800000}")
+    public void setExpiration(long expiration) {
+        JwtUtil.EXPIRATION = expiration;
+    }
+
+    public String generateToken(Long userId) {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
@@ -20,7 +33,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static Long getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(SECRET)
                 .parseClaimsJws(token)
@@ -28,7 +41,7 @@ public class JwtUtil {
         return Long.parseLong(claims.getSubject());
     }
 
-    public static boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);
             return true;

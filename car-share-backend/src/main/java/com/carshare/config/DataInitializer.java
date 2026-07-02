@@ -1,5 +1,6 @@
 package com.carshare.config;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.carshare.entity.Car;
 import com.carshare.entity.CarMember;
 import com.carshare.entity.Goods;
@@ -41,7 +42,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            if (carMapper == null || carMapper.selectCount(null) > 0) {
+            if (carMapper == null || carMapper.selectCount(new QueryWrapper<>()) > 0) {
                 return; // 已有数据，跳过
             }
 

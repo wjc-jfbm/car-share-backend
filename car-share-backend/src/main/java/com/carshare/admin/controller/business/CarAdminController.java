@@ -55,8 +55,13 @@ public class CarAdminController extends BaseController
     @PreAuthorize("@ss.hasPermi('business:car:remove')")
     @Log(title = "拼车管理", businessType = BusinessType.DELETE)
     @DeleteMapping("/{carIds}")
-    public AjaxResult remove(@PathVariable Long[] carIds)
+    public AjaxResult remove(@PathVariable String carIds)
     {
-        return toAjax(carService.deleteCars(carIds));
+        String[] ids = carIds.split(",");
+        Long[] longIds = new Long[ids.length];
+        for (int i = 0; i < ids.length; i++) {
+            longIds[i] = Long.parseLong(ids[i]);
+        }
+        return toAjax(carService.deleteCars(longIds));
     }
 }
